@@ -297,21 +297,20 @@ class OPCUABrowser:
         if current_depth > max_depth:
             return
 
-        async with self._semaphore:  # Concurrency control
-            try:
-                # Get child nodes
-                children = await asyncio.wait_for(
-                    node.get_children(),
-                    timeout=self._request_timeout,
-                )
-            except TimeoutError:
-                logger.warning(f"Timeout browsing node at depth {current_depth}")
-                return
-            except Exception as e:
-                logger.debug(f"Error browsing node: {e}")
-                return
+        # Get child nodes (semaphore control is in _process_node)
+        try:
+            children = await asyncio.wait_for(
+                node.get_children(),
+                timeout=self._request_timeout,
+            )
+        except TimeoutError:
+            logger.warning(f"Timeout browsing node at depth {current_depth}")
+            return
+        except Exception as e:
+            logger.debug(f"Error browsing node: {e}")
+            return
 
-        # Process children concurrently with backpressure
+        # Process children concurrently with backpressure (semaphore in _process_node)
         tasks = []
         for child in children:
             tasks.append(self._process_node(child, parent_path, results, max_depth, current_depth))
@@ -512,14 +511,26 @@ class OPCUABrowser:
     def _looks_like_irdi(value: str) -> bool:
         """Check if a string looks like an IRDI.
 
+        Valid IRDI formats:
+        - IEC CDD / ECLASS: 0173-1#01-ABA234#001
+        - Simplified: 0173-1#01-ABA234 (without version)
+        - URN style: urn:eclass:0173-1-01-ABA234-001
+
         Args:
             value: String to check.
 
         Returns:
             True if the string appears to be an IRDI.
         """
-        # Basic IRDI format check: contains # or starts with 0173 (ECLASS)
-        return "#" in value or value.startswith("0173") or "-" in value
+        import re
+
+        # ECLASS/IEC CDD pattern: org-version#type-code#version or similar
+        irdi_pattern = re.compile(
+            r"^0173-\d+#\d+-[A-Z0-9]+(?:#\d+)?$"  # 0173-1#01-ABA234#001
+            r"|^urn:eclass:0173"  # URN style
+            r"|^\d{4}-\d+#\d+-[A-Z0-9]+"  # Generic IRDI with org code
+        )
+        return bool(irdi_pattern.match(value))
 
     async def read_value(self, node_id: str) -> object:
         """Read the current value of a node.

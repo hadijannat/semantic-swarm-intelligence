@@ -10,13 +10,22 @@ from noa_swarm.connectors.filesystem import (
     import_from_csv,
     import_from_json,
 )
-from noa_swarm.connectors.opcua_asyncua import OPCUABrowser, OPCUABrowserError
+from noa_swarm.connectors.opcua_asyncua import (
+    OPCUABrowser,
+    OPCUABrowserError,
+    OPCUABrowseError,
+    OPCUAConnectionError,
+    OPCUAWriteAttemptError,
+)
 from noa_swarm.connectors.opcua_simulator import OPCUASimulator
 
 __all__ = [
     # OPC UA
     "OPCUABrowser",
     "OPCUABrowserError",
+    "OPCUABrowseError",
+    "OPCUAConnectionError",
+    "OPCUAWriteAttemptError",
     "OPCUASimulator",
     # File system
     "import_from_csv",

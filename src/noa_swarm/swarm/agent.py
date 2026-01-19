@@ -299,10 +299,11 @@ class SemanticAgent:
         """Discover tags from the OPC UA server.
 
         Returns:
-            List of discovered TagRecord instances.
+            List of discovered TagRecord instances. Returns empty list if
+            the OPC UA browser is not available.
 
         Raises:
-            SemanticAgentError: If OPC UA browser is not available.
+            SemanticAgentError: If tag discovery fails during browsing.
         """
         if self._opcua_browser is None:
             logger.warning(f"OPC UA browser not available for {self.agent_id}")

@@ -34,7 +34,9 @@ rich = "^13.7.0"
 loguru = "^0.7.2"
 httpx = "^0.26.0"
 # UI
-gradio = "^4.15.0"
+gradio = "^5.0"
+huggingface-hub = "<1.0.0"
+typer = "^0.21.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

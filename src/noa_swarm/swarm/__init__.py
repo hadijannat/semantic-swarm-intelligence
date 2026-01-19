@@ -16,6 +16,10 @@ Key components:
 - **ReputationTracker**: Tracks agent reliability based on prediction accuracy
 - **AgentOutcome**: Record of a single prediction outcome
 - **AgentReputation**: Full reputation record for an agent
+- **SemanticAgent**: Main agent class orchestrating all swarm components
+- **SemanticAgentConfig**: Configuration for the SemanticAgent
+- **AgentState**: Enum for agent lifecycle states
+- **SemanticAgentError**: Exception for agent errors
 
 Example usage:
     >>> from noa_swarm.swarm import SwarmMembership, SwarmMember
@@ -42,6 +46,16 @@ Example usage:
     >>> tracker = ReputationTracker(config)
     >>> tracker.record_outcome("agent-001", "tag-123", "irdi-a", "irdi-a")
     >>> score = tracker.get_reliability("agent-001")
+
+    >>> from noa_swarm.swarm import SemanticAgent, SemanticAgentConfig
+    >>> config = SemanticAgentConfig(
+    ...     agent_id="agent-001",
+    ...     opcua_endpoint="opc.tcp://localhost:4840",
+    ...     mqtt_host="localhost",
+    ... )
+    >>> async with SemanticAgent(config) as agent:
+    ...     # Agent runs lifecycle loop automatically
+    ...     pass
 """
 
 from noa_swarm.swarm.consensus import (
@@ -77,6 +91,12 @@ from noa_swarm.swarm.reputation import (
     ReputationConfig,
     ReputationTracker,
 )
+from noa_swarm.swarm.agent import (
+    AgentState,
+    SemanticAgent,
+    SemanticAgentConfig,
+    SemanticAgentError,
+)
 
 __all__ = [
     # Membership
@@ -109,4 +129,9 @@ __all__ = [
     "AgentReputation",
     "ReputationConfig",
     "ReputationTracker",
+    # Agent
+    "AgentState",
+    "SemanticAgent",
+    "SemanticAgentConfig",
+    "SemanticAgentError",
 ]

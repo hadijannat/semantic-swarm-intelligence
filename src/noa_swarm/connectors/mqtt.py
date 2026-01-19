@@ -163,7 +163,7 @@ class MQTTClient:
             return
 
         try:
-            self._loop = asyncio.get_event_loop()
+            self._loop = asyncio.get_running_loop()
 
             # Create paho MQTT client with callback API version
             self._client = mqtt_client.Client(
@@ -450,12 +450,12 @@ class MQTTClient:
             if self._connect_future and not self._connect_future.done() and self._loop:
                 self._loop.call_soon_threadsafe(self._connect_future.set_result, None)
 
-            # Fire connect callbacks
+            # Fire connect callbacks (schedule coroutine via run_coroutine_threadsafe)
             if self._loop:
                 for callback in self._connect_callbacks:
-                    self._loop.call_soon_threadsafe(
-                        asyncio.create_task,
+                    asyncio.run_coroutine_threadsafe(
                         self._fire_callback(callback),
+                        self._loop,
                     )
         else:
             self._connected = False
@@ -475,12 +475,12 @@ class MQTTClient:
         self._connected = False
         logger.info(f"MQTT client disconnected: {reason_code}")
 
-        # Fire disconnect callbacks
+        # Fire disconnect callbacks (schedule coroutine via run_coroutine_threadsafe)
         if self._loop:
             for callback in self._disconnect_callbacks:
-                self._loop.call_soon_threadsafe(
-                    asyncio.create_task,
+                asyncio.run_coroutine_threadsafe(
                     self._fire_disconnect_callback(callback, reason_code),
+                    self._loop,
                 )
 
     def _on_message(
@@ -492,9 +492,9 @@ class MQTTClient:
         """Handle incoming message callback from paho-mqtt."""
         if self._loop:
             for callback in self._message_callbacks:
-                self._loop.call_soon_threadsafe(
-                    asyncio.create_task,
+                asyncio.run_coroutine_threadsafe(
                     self._fire_message_callback(callback, message.topic, message.payload),
+                    self._loop,
                 )
 
     def _on_publish(

@@ -1,0 +1,76 @@
+# Dockerfile for NOA Semantic Swarm Agent
+#
+# Multi-stage build for optimized image size
+# Includes: CharCNN/GNN models, SWIM membership, MQTT, consensus
+
+# ============================================================================
+# Builder Stage - Install dependencies
+# ============================================================================
+FROM python:3.12-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+ENV POETRY_HOME="/opt/poetry"
+ENV POETRY_VIRTUALENVS_CREATE=false
+ENV POETRY_NO_INTERACTION=1
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH="$POETRY_HOME/bin:$PATH"
+
+# Set working directory
+WORKDIR /app
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock ./
+
+# Install dependencies (no dev dependencies)
+RUN poetry install --no-root --only main --no-directory
+
+# ============================================================================
+# Runtime Stage - Final image
+# ============================================================================
+FROM python:3.12-slim as runtime
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN useradd -m -u 1000 agent
+USER agent
+
+# Set working directory
+WORKDIR /app
+
+# Copy installed packages from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application code
+COPY --chown=agent:agent src/ ./src/
+COPY --chown=agent:agent configs/ ./configs/
+
+# Set Python path
+ENV PYTHONPATH="/app/src:$PYTHONPATH"
+ENV PYTHONUNBUFFERED=1
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import noa_swarm; print('OK')" || exit 1
+
+# Default configuration
+ENV NOA_CONFIG_PATH="/app/configs/dev.yaml"
+ENV NOA_LOG_LEVEL="INFO"
+ENV NOA_AGENT_ID=""
+ENV MQTT_HOST="mosquitto"
+ENV MQTT_PORT="1883"
+
+# Entry point - run the semantic agent
+ENTRYPOINT ["python", "-m", "noa_swarm.swarm.agent"]
+CMD []

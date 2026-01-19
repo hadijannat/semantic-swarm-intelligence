@@ -1,0 +1,159 @@
+# Example Plant Configuration for NOA Semantic Swarm Mapper
+#
+# This configuration demonstrates how to set up the mapper for a
+# specific industrial plant with OPC UA server connectivity.
+
+# =============================================================================
+# Plant Identification
+# =============================================================================
+plant:
+  name: "Acme Chemical Plant"
+  id: "PLANT-001"
+  location: "Building A, Floor 2"
+  description: "Tennessee Eastman-style chemical process plant"
+
+# =============================================================================
+# OPC UA Server Configuration
+# =============================================================================
+opcua:
+  # Primary OPC UA server endpoint
+  endpoint: "opc.tcp://plc-server.acme.local:4840"
+  # Security settings
+  security_mode: "SignAndEncrypt"
+  security_policy: "Basic256Sha256"
+  # Certificate paths (for secure connections)
+  certificate_path: "/app/certs/client_cert.pem"
+  private_key_path: "/app/certs/client_key.pem"
+  # Server certificate (for verification)
+  server_certificate_path: "/app/certs/server_cert.pem"
+  # Username/password authentication (optional)
+  username: "noa_reader"
+  password_env: "OPCUA_PASSWORD"  # Read from environment variable
+  # Browse settings
+  browse_batch_size: 500
+  timeout: 60
+  read_only: true
+
+# =============================================================================
+# Tag Namespaces to Browse
+# =============================================================================
+namespaces:
+  # Include specific namespaces for discovery
+  include:
+    - "urn:acme:chemical:process"
+    - "urn:acme:chemical:instruments"
+  # Exclude system namespaces
+  exclude:
+    - "http://opcfoundation.org/UA/"
+    - "urn:acme:internal:diagnostics"
+
+# =============================================================================
+# Tag Filtering
+# =============================================================================
+tag_filters:
+  # Include patterns (regex)
+  include_patterns:
+    - "^[A-Z]{2,4}-\\d{3}\\."  # ISA naming: TIC-101.PV, FIC-201.SP
+    - "^UNIT_\\d+"             # Unit prefixes
+  # Exclude patterns
+  exclude_patterns:
+    - "\\.INTERNAL$"
+    - "\\.DEBUG$"
+    - "^_"                     # Internal tags
+
+# =============================================================================
+# Process Units
+# =============================================================================
+process_units:
+  - id: "UNIT-100"
+    name: "Feed Section"
+    description: "Raw material feed and conditioning"
+    opcua_folder: "Unit100"
+
+  - id: "UNIT-200"
+    name: "Reactor Section"
+    description: "Main reaction vessel and controls"
+    opcua_folder: "Unit200"
+
+  - id: "UNIT-300"
+    name: "Separation Section"
+    description: "Product separation and purification"
+    opcua_folder: "Unit300"
+
+  - id: "UNIT-400"
+    name: "Product Storage"
+    description: "Final product storage tanks"
+    opcua_folder: "Unit400"
+
+# =============================================================================
+# Expected Tag Types (for validation)
+# =============================================================================
+expected_tags:
+  # Temperature instruments
+  temperature:
+    prefix: "TI"
+    signal_types: ["PV", "SP", "OP"]
+    unit: "degC"
+
+  # Flow instruments
+  flow:
+    prefix: "FI"
+    signal_types: ["PV", "SP", "OP", "TOTL"]
+    unit: "kg/h"
+
+  # Pressure instruments
+  pressure:
+    prefix: "PI"
+    signal_types: ["PV", "SP", "OP"]
+    unit: "kPa"
+
+  # Level instruments
+  level:
+    prefix: "LI"
+    signal_types: ["PV", "SP", "OP"]
+    unit: "percent"
+
+  # Control valves
+  valve:
+    prefix: "XV"
+    signal_types: ["CMD", "FB", "POS"]
+    unit: "percent"
+
+# =============================================================================
+# Mapping Preferences
+# =============================================================================
+mapping:
+  # Confidence threshold for automatic acceptance
+  auto_accept_threshold: 0.95
+  # Tags below this confidence require manual review
+  review_threshold: 0.70
+  # Maximum candidates to return per tag
+  max_candidates: 5
+  # Enable consensus voting
+  use_consensus: true
+  # Minimum agents for consensus
+  min_consensus_agents: 2
+
+# =============================================================================
+# Export Settings
+# =============================================================================
+export:
+  # Output directory for this plant
+  output_dir: "/app/exports/acme_plant"
+  # AAS identifier prefix
+  aas_id_prefix: "urn:acme:aas:acme_chemical"
+  # Include audit trail in exports
+  include_audit_trail: true
+  # Export format
+  format: "aasx"
+
+# =============================================================================
+# Scheduling
+# =============================================================================
+schedule:
+  # Discovery interval (how often to scan for new tags)
+  discovery_interval: "1h"
+  # Re-evaluation interval (check for mapping improvements)
+  reevaluation_interval: "24h"
+  # Export interval
+  export_interval: "6h"

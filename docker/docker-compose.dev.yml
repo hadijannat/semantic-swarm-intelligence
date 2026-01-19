@@ -1,0 +1,213 @@
+# Docker Compose for NOA Semantic Swarm Mapper Development
+#
+# Full development stack:
+# - Mosquitto (MQTT broker)
+# - PostgreSQL (mapping registry)
+# - API Server (FastAPI)
+# - Gradio UI
+# - Flower Server (federated learning)
+# - 3x Semantic Agents
+#
+# Usage:
+#   docker compose -f docker/docker-compose.dev.yml up -d
+#   docker compose -f docker/docker-compose.dev.yml logs -f
+#   docker compose -f docker/docker-compose.dev.yml down
+
+services:
+  # ===========================================================================
+  # Infrastructure Services
+  # ===========================================================================
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: noa-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1", "-i", "healthcheck", "-W", "3"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - noa-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: noa-postgres
+    environment:
+      POSTGRES_USER: noa
+      POSTGRES_PASSWORD: noa_dev_password
+      POSTGRES_DB: noa
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U noa -d noa"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - noa-network
+
+  # ===========================================================================
+  # Application Services
+  # ===========================================================================
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.server
+    container_name: noa-api
+    ports:
+      - "8000:8000"
+    environment:
+      NOA_CONFIG_PATH: /app/configs/dev.yaml
+      NOA_LOG_LEVEL: INFO
+      DATABASE_URL: postgresql://noa:noa_dev_password@postgres:5432/noa
+      MQTT_HOST: mosquitto
+      MQTT_PORT: "1883"
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - noa-network
+
+  gradio:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.server
+    container_name: noa-gradio
+    ports:
+      - "7860:7860"
+    environment:
+      NOA_CONFIG_PATH: /app/configs/dev.yaml
+      NOA_LOG_LEVEL: INFO
+      NOA_API_URL: http://api:8000
+    entrypoint: ["python", "-m", "noa_swarm.ui.gradio_app"]
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - noa-network
+
+  flower-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.server
+    container_name: noa-flower-server
+    ports:
+      - "8080:8080"
+    environment:
+      NOA_CONFIG_PATH: /app/configs/dev.yaml
+      NOA_LOG_LEVEL: INFO
+      FL_MIN_CLIENTS: "2"
+      FL_ROUNDS: "10"
+    entrypoint: ["python", "-m", "noa_swarm.federated.flower_server"]
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - noa-network
+
+  # ===========================================================================
+  # Semantic Agents (Swarm)
+  # ===========================================================================
+
+  agent-1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.agent
+    container_name: noa-agent-1
+    environment:
+      NOA_CONFIG_PATH: /app/configs/dev.yaml
+      NOA_LOG_LEVEL: INFO
+      NOA_AGENT_ID: agent-001
+      MQTT_HOST: mosquitto
+      MQTT_PORT: "1883"
+      FL_SERVER_ADDRESS: flower-server:8080
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      flower-server:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - noa-network
+
+  agent-2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.agent
+    container_name: noa-agent-2
+    environment:
+      NOA_CONFIG_PATH: /app/configs/dev.yaml
+      NOA_LOG_LEVEL: INFO
+      NOA_AGENT_ID: agent-002
+      MQTT_HOST: mosquitto
+      MQTT_PORT: "1883"
+      FL_SERVER_ADDRESS: flower-server:8080
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      flower-server:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - noa-network
+
+  agent-3:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.agent
+    container_name: noa-agent-3
+    environment:
+      NOA_CONFIG_PATH: /app/configs/dev.yaml
+      NOA_LOG_LEVEL: INFO
+      NOA_AGENT_ID: agent-003
+      MQTT_HOST: mosquitto
+      MQTT_PORT: "1883"
+      FL_SERVER_ADDRESS: flower-server:8080
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      flower-server:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - noa-network
+
+# =============================================================================
+# Networks
+# =============================================================================
+
+networks:
+  noa-network:
+    driver: bridge
+    name: noa-network
+
+# =============================================================================
+# Volumes
+# =============================================================================
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+  postgres-data:

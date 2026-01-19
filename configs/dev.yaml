@@ -1,0 +1,241 @@
+# Development Configuration for NOA Semantic Swarm Mapper
+#
+# This configuration is optimized for local development and Docker Compose.
+# For production, create a separate config with stricter security settings.
+
+# =============================================================================
+# Application Settings
+# =============================================================================
+app:
+  name: "NOA Semantic Swarm Mapper"
+  version: "1.0.0"
+  environment: "development"
+  debug: true
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+logging:
+  level: "INFO"
+  format: "json"
+  include_timestamp: true
+  include_correlation_id: true
+
+# =============================================================================
+# OPC UA Settings
+# =============================================================================
+opcua:
+  # Default discovery endpoint (can be overridden)
+  endpoint: "opc.tcp://localhost:4840"
+  # Security mode: None, Sign, SignAndEncrypt
+  security_mode: "None"
+  # Maximum nodes to browse per request
+  browse_batch_size: 1000
+  # Timeout for operations (seconds)
+  timeout: 30
+  # Read-only mode (write operations disabled)
+  read_only: true
+
+# =============================================================================
+# MQTT Configuration
+# =============================================================================
+mqtt:
+  host: "${MQTT_HOST:-localhost}"
+  port: "${MQTT_PORT:-1883}"
+  # Client ID prefix (agent ID appended)
+  client_id_prefix: "noa-agent-"
+  # Topic prefixes
+  topics:
+    agents: "noa/agents"
+    tags: "noa/tags"
+    consensus: "noa/consensus"
+    system: "noa/system"
+  # QoS level (0, 1, or 2)
+  qos: 1
+  # Retain consensus messages
+  retain_consensus: true
+  # Keepalive interval (seconds)
+  keepalive: 60
+
+# =============================================================================
+# Database Configuration
+# =============================================================================
+database:
+  url: "${DATABASE_URL:-postgresql://noa:noa@localhost:5432/noa}"
+  pool_size: 5
+  max_overflow: 10
+
+# =============================================================================
+# Swarm Configuration
+# =============================================================================
+swarm:
+  # SWIM protocol settings
+  swim:
+    bind_host: "0.0.0.0"
+    bind_port: 7946
+    # Failure detection
+    ping_interval: 1.0
+    ping_timeout: 0.5
+    indirect_pings: 3
+    # Suspicion timeout (seconds)
+    suspicion_multiplier: 4
+
+  # Consensus settings
+  consensus:
+    # Minimum votes required for quorum
+    min_quorum: 2
+    # Confidence threshold for acceptance
+    confidence_threshold: 0.7
+    # Maximum rounds before forced resolution
+    max_rounds: 5
+    # Round timeout (seconds)
+    round_timeout: 10.0
+    # Weight factors
+    weights:
+      calibration: 0.4
+      reliability: 0.3
+      freshness: 0.3
+
+  # Agent reliability scoring
+  reliability:
+    # Initial reliability score for new agents
+    initial_score: 0.5
+    # Rolling window for accuracy calculation
+    window_size: 100
+    # Minimum samples before reliability is trusted
+    min_samples: 10
+
+# =============================================================================
+# ML Model Configuration
+# =============================================================================
+ml:
+  # CharCNN settings
+  charcnn:
+    vocab_size: 70
+    embedding_dim: 64
+    num_filters: 256
+    kernel_sizes: [3, 5, 7]
+    dropout: 0.5
+    max_seq_length: 100
+
+  # GNN settings
+  gnn:
+    hidden_dim: 128
+    num_layers: 3
+    aggregator: "mean"
+    dropout: 0.5
+
+  # Fusion settings
+  fusion:
+    method: "late"
+    temperature: 1.5
+
+  # Model paths
+  models_dir: "/app/models"
+  checkpoint_interval: 5
+
+# =============================================================================
+# Federated Learning Configuration
+# =============================================================================
+federated:
+  server:
+    address: "${FL_SERVER_ADDRESS:-localhost:8080}"
+    # Minimum clients required to start round
+    min_clients: "${FL_MIN_CLIENTS:-2}"
+    # Number of training rounds
+    num_rounds: "${FL_ROUNDS:-10}"
+    # Fraction of clients to select per round
+    fraction_fit: 0.5
+    fraction_evaluate: 0.5
+
+  client:
+    # Local training epochs per round
+    local_epochs: 3
+    batch_size: 32
+    learning_rate: 0.001
+
+  # FedProx settings
+  fedprox:
+    enabled: true
+    mu: 0.01  # Proximal term weight
+
+  # Differential privacy settings
+  differential_privacy:
+    enabled: false
+    epsilon_budget: 1.0
+    delta: 1e-5
+    clip_norm: 1.0
+    noise_multiplier: 1.1
+
+# =============================================================================
+# Dictionary Providers
+# =============================================================================
+dictionaries:
+  # Priority order for lookups
+  priority:
+    - "seed"
+    - "iec_cdd"
+    - "eclass"
+
+  # Seed provider (local curated subset)
+  seed:
+    enabled: true
+    data_path: "/app/data/seed_dictionary.json"
+
+  # IEC CDD provider
+  iec_cdd:
+    enabled: false
+    api_url: "https://cdd.iec.ch/api/v1"
+    cache_ttl: 3600
+
+  # eCl@ss provider
+  eclass:
+    enabled: false
+    api_url: "https://eclass-cdp.com/api"
+    cache_ttl: 3600
+
+# =============================================================================
+# AAS Export Settings
+# =============================================================================
+aas:
+  # Output directory for AAS exports
+  output_dir: "/app/exports"
+  # Default format (json, xml, aasx)
+  default_format: "aasx"
+  # BaSyx server settings
+  basyx:
+    enabled: false
+    registry_url: "http://localhost:4000"
+    server_url: "http://localhost:4001"
+
+# =============================================================================
+# API Settings
+# =============================================================================
+api:
+  host: "0.0.0.0"
+  port: 8000
+  # CORS settings
+  cors:
+    enabled: true
+    origins: ["*"]
+    methods: ["*"]
+    headers: ["*"]
+  # Rate limiting
+  rate_limit:
+    enabled: false
+    requests_per_minute: 100
+
+# =============================================================================
+# Observability
+# =============================================================================
+observability:
+  # Prometheus metrics
+  metrics:
+    enabled: true
+    endpoint: "/metrics"
+  # Structured logging
+  logging:
+    format: "json"
+    level: "INFO"
+  # Correlation ID header name
+  correlation_id_header: "X-Correlation-ID"

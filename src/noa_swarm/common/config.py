@@ -59,6 +59,17 @@ class OPCUASettings(BaseSettings):
         default=1000,
         description="Subscription interval in milliseconds",
     )
+    max_concurrent_requests: int = Field(
+        default=10,
+        ge=1,
+        le=100,
+        description="Maximum concurrent browse/read requests",
+    )
+    request_timeout: float = Field(
+        default=30.0,
+        ge=1.0,
+        description="Request timeout in seconds",
+    )
 
 
 class MLSettings(BaseSettings):

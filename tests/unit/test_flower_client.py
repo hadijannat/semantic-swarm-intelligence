@@ -107,6 +107,54 @@ class TestFedProxConfig:
         with pytest.raises(TypeError):
             FedProxConfig()  # type: ignore[call-arg]
 
+    def test_empty_client_id_raises(self) -> None:
+        """Test that empty client_id raises ValueError."""
+        with pytest.raises(ValueError, match="client_id cannot be empty"):
+            FedProxConfig(client_id="")
+
+    def test_negative_mu_raises(self) -> None:
+        """Test that negative mu raises ValueError."""
+        with pytest.raises(ValueError, match="mu must be non-negative"):
+            FedProxConfig(client_id="test", mu=-0.1)
+
+    def test_zero_local_epochs_raises(self) -> None:
+        """Test that local_epochs < 1 raises ValueError."""
+        with pytest.raises(ValueError, match="local_epochs must be >= 1"):
+            FedProxConfig(client_id="test", local_epochs=0)
+
+    def test_zero_batch_size_raises(self) -> None:
+        """Test that batch_size < 1 raises ValueError."""
+        with pytest.raises(ValueError, match="batch_size must be >= 1"):
+            FedProxConfig(client_id="test", batch_size=0)
+
+    def test_zero_learning_rate_raises(self) -> None:
+        """Test that learning_rate <= 0 raises ValueError."""
+        with pytest.raises(ValueError, match="learning_rate must be positive"):
+            FedProxConfig(client_id="test", learning_rate=0.0)
+
+    def test_negative_learning_rate_raises(self) -> None:
+        """Test that negative learning_rate raises ValueError."""
+        with pytest.raises(ValueError, match="learning_rate must be positive"):
+            FedProxConfig(client_id="test", learning_rate=-0.01)
+
+    def test_valid_edge_values(self) -> None:
+        """Test that valid edge values are accepted."""
+        # mu=0 is valid (disables proximal term)
+        config = FedProxConfig(client_id="test", mu=0.0)
+        assert config.mu == 0.0
+
+        # local_epochs=1 is valid
+        config = FedProxConfig(client_id="test", local_epochs=1)
+        assert config.local_epochs == 1
+
+        # batch_size=1 is valid
+        config = FedProxConfig(client_id="test", batch_size=1)
+        assert config.batch_size == 1
+
+        # Very small learning rate is valid
+        config = FedProxConfig(client_id="test", learning_rate=1e-10)
+        assert config.learning_rate == 1e-10
+
 
 class TestFedProxClient:
     """Tests for FedProxClient class."""
@@ -358,8 +406,14 @@ class TestFedProxProximalTerm:
         # Set model to these parameters
         client.set_parameters(params)
 
+        # Convert to tensors (as fit() does internally)
+        global_tensors = [
+            torch.tensor(p, dtype=param.dtype, device=client.device)
+            for p, param in zip(params, client.model.parameters(), strict=True)
+        ]
+
         # Compute proximal loss comparing to itself
-        prox_loss = client._proximal_loss(params)
+        prox_loss = client._proximal_loss(global_tensors)
 
         assert prox_loss.item() == pytest.approx(0.0, abs=1e-6)
 
@@ -373,8 +427,14 @@ class TestFedProxProximalTerm:
         new_params = [p + 1.0 for p in global_params]
         client.set_parameters(new_params)
 
+        # Convert to tensors (as fit() does internally)
+        global_tensors = [
+            torch.tensor(p, dtype=param.dtype, device=client.device)
+            for p, param in zip(global_params, client.model.parameters(), strict=True)
+        ]
+
         # Compute proximal loss
-        prox_loss = client._proximal_loss(global_params)
+        prox_loss = client._proximal_loss(global_tensors)
 
         assert prox_loss.item() > 0
 
@@ -384,15 +444,21 @@ class TestFedProxProximalTerm:
         """Test proximal loss scales with parameter difference."""
         global_params = client.get_parameters(config={})
 
+        # Convert to tensors once (as fit() does internally)
+        global_tensors = [
+            torch.tensor(p, dtype=param.dtype, device=client.device)
+            for p, param in zip(global_params, client.model.parameters(), strict=True)
+        ]
+
         # Small difference
         small_diff_params = [p + 0.1 for p in global_params]
         client.set_parameters(small_diff_params)
-        small_loss = client._proximal_loss(global_params)
+        small_loss = client._proximal_loss(global_tensors)
 
         # Large difference
         large_diff_params = [p + 1.0 for p in global_params]
         client.set_parameters(large_diff_params)
-        large_loss = client._proximal_loss(global_params)
+        large_loss = client._proximal_loss(global_tensors)
 
         assert large_loss.item() > small_loss.item()
 

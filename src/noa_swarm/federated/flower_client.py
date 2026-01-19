@@ -60,6 +60,19 @@ class FedProxConfig:
     batch_size: int = 32
     learning_rate: float = 0.001
 
+    def __post_init__(self) -> None:
+        """Validate configuration parameters."""
+        if not self.client_id:
+            raise ValueError("client_id cannot be empty")
+        if self.mu < 0:
+            raise ValueError(f"mu must be non-negative, got {self.mu}")
+        if self.local_epochs < 1:
+            raise ValueError(f"local_epochs must be >= 1, got {self.local_epochs}")
+        if self.batch_size < 1:
+            raise ValueError(f"batch_size must be >= 1, got {self.batch_size}")
+        if self.learning_rate <= 0:
+            raise ValueError(f"learning_rate must be positive, got {self.learning_rate}")
+
 
 class FedProxClient(fl.client.NumPyClient):
     """Flower client implementing FedProx algorithm.
@@ -171,7 +184,7 @@ class FedProxClient(fl.client.NumPyClient):
                 device=param.device,
             )
 
-    def _proximal_loss(self, global_params: Sequence[np.ndarray]) -> torch.Tensor:
+    def _proximal_loss(self, global_tensors: list[torch.Tensor]) -> torch.Tensor:
         """Compute the proximal term ||w - w_global||^2.
 
         This penalizes the local model for deviating too far from the
@@ -179,21 +192,16 @@ class FedProxClient(fl.client.NumPyClient):
         data across clients.
 
         Args:
-            global_params: Global model parameters as NumPy arrays.
+            global_tensors: Global model parameters as cached PyTorch tensors.
 
         Returns:
             Scalar tensor containing the proximal term value.
         """
         prox_term = torch.tensor(0.0, device=self.device)
 
-        for local_param, global_param in zip(
-            self.model.parameters(), global_params, strict=True
+        for local_param, global_tensor in zip(
+            self.model.parameters(), global_tensors, strict=True
         ):
-            global_tensor = torch.tensor(
-                global_param,
-                dtype=local_param.dtype,
-                device=self.device,
-            )
             prox_term = prox_term + torch.sum((local_param - global_tensor) ** 2)
 
         return prox_term
@@ -219,11 +227,14 @@ class FedProxClient(fl.client.NumPyClient):
             - Number of training examples used
             - Dictionary with training metrics (e.g., {"loss": 0.5})
         """
-        # Store global params for proximal term
-        global_params = [np.copy(p) for p in parameters]
-
-        # Set model to global parameters
+        # Set model to global parameters first
         self.set_parameters(parameters)
+
+        # Cache global params as tensors for proximal term (avoids repeated tensor creation)
+        global_tensors = [
+            torch.tensor(p, dtype=param.dtype, device=self.device)
+            for p, param in zip(parameters, self.model.parameters(), strict=True)
+        ]
 
         # Handle empty training data
         num_train = len(self.train_data[0])
@@ -272,7 +283,7 @@ class FedProxClient(fl.client.NumPyClient):
                     task_loss = criterion(outputs, batch_y)
 
                     # Add proximal term: (mu/2) * ||w - w_global||^2
-                    prox_loss = (self.config.mu / 2.0) * self._proximal_loss(global_params)
+                    prox_loss = (self.config.mu / 2.0) * self._proximal_loss(global_tensors)
                     loss = task_loss + prox_loss
 
                     # Backward pass
@@ -295,7 +306,7 @@ class FedProxClient(fl.client.NumPyClient):
                     task_loss = criterion(outputs, batch_y) * self.pseudo_weight
 
                     # Add proximal term
-                    prox_loss = (self.config.mu / 2.0) * self._proximal_loss(global_params)
+                    prox_loss = (self.config.mu / 2.0) * self._proximal_loss(global_tensors)
                     loss = task_loss + prox_loss
 
                     # Backward pass

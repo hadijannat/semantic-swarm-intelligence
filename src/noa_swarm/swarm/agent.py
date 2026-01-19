@@ -573,7 +573,9 @@ class SemanticAgent:
         1. Discovers tags from OPC UA
         2. Infers mappings using ML
         3. Gossips hypotheses to the swarm
-        4. Sleeps for poll_interval
+        4. Votes on discovered tags
+        5. Commits any reached consensus
+        6. Sleeps for poll_interval
         """
         logger.info(f"Starting lifecycle loop for {self.agent_id}")
 
@@ -590,6 +592,15 @@ class SemanticAgent:
                         # Gossip
                         if hypotheses:
                             await self.gossip_hypotheses(hypotheses)
+
+                            # Vote on discovered tags
+                            tag_ids = [h.tag_id for h in hypotheses]
+                            await self.vote_on_tags(tag_ids)
+
+                            # Commit any reached consensus
+                            # In a real system, this would check for consensus from swarm
+                            # For now, this is a placeholder that commits nothing
+                            await self.commit_mappings([])
 
                 except Exception as e:
                     logger.error(f"Error in lifecycle loop: {e}")

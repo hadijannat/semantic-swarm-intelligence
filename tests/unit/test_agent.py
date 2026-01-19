@@ -959,10 +959,10 @@ class TestSemanticAgentIntegration:
         )
 
     @pytest.mark.asyncio
-    async def test_full_lifecycle_discover_infer_gossip(
+    async def test_full_lifecycle_discover_infer_gossip_vote_commit(
         self, config: SemanticAgentConfig
     ) -> None:
-        """Test complete lifecycle: discover -> infer -> gossip."""
+        """Test complete lifecycle: discover -> infer -> gossip -> vote -> commit."""
         sample_tags = [
             TagRecord(
                 node_id="ns=2;s=Temperature.PV",
@@ -991,7 +991,14 @@ class TestSemanticAgentIntegration:
         mock_inference = MagicMock()
         mock_inference.infer = MagicMock(return_value=sample_hypotheses)
 
-        agent = SemanticAgent(config, inference_engine=mock_inference)
+        mock_reputation = MagicMock()
+        mock_reputation.get_reliability = MagicMock(return_value=0.9)
+
+        agent = SemanticAgent(
+            config,
+            inference_engine=mock_inference,
+            reputation_tracker=mock_reputation,
+        )
 
         # Mock OPC UA browser
         mock_browser = AsyncMock()
@@ -1001,14 +1008,23 @@ class TestSemanticAgentIntegration:
         # Mock gossip
         mock_gossip = AsyncMock()
         mock_gossip.broadcast_hypothesis = AsyncMock()
+        mock_gossip.broadcast_vote = AsyncMock()
+        mock_gossip.broadcast_consensus = AsyncMock()
         agent._gossip = mock_gossip
 
-        # Execute lifecycle steps
+        # Execute lifecycle steps: discover -> infer -> gossip -> vote -> commit
         tags = await agent.discover_tags()
         hypotheses = await agent.infer_mappings(tags)
         await agent.gossip_hypotheses(hypotheses)
 
-        # Verify
+        # Vote on discovered tags
+        tag_ids = [h.tag_id for h in hypotheses]
+        await agent.vote_on_tags(tag_ids)
+
+        # Commit mappings (empty for now as consensus checking is not implemented)
+        await agent.commit_mappings([])
+
+        # Verify discovery, inference, and gossip
         assert len(tags) == 1
         assert len(hypotheses) == 1
 
@@ -1018,6 +1034,13 @@ class TestSemanticAgentIntegration:
         assert health["last_discovery_time"] is not None
         assert health["last_inference_time"] is not None
         assert health["last_gossip_time"] is not None
+
+        # Verify voting was called
+        assert health["votes_cast"] == 1
+        mock_gossip.broadcast_vote.assert_called_once()
+
+        # Verify gossip methods were called correctly
+        mock_gossip.broadcast_hypothesis.assert_called_once()
 
     def test_swarm_module_exports_agent(self) -> None:
         """Test that SemanticAgent can be imported from swarm module."""

@@ -14,11 +14,27 @@ from noa_swarm.ml.datasets import (
     TagSample,
     TEPDataset,
 )
+from noa_swarm.ml.models import CharCNN, CharacterTokenizer
+from noa_swarm.ml.training import (
+    compute_accuracy,
+    compute_confusion_matrix,
+    compute_macro_f1,
+    compute_top_k_accuracy,
+)
 
 __all__ = [
+    # Datasets
     "CMAPSSDataset",
     "DatasetSplit",
     "SyntheticTagGenerator",
     "TagSample",
     "TEPDataset",
+    # Models
+    "CharCNN",
+    "CharacterTokenizer",
+    # Evaluation
+    "compute_accuracy",
+    "compute_confusion_matrix",
+    "compute_macro_f1",
+    "compute_top_k_accuracy",
 ]

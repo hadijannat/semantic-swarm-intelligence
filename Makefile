@@ -1,4 +1,4 @@
-.PHONY: install lint format typecheck test check clean pre-commit
+.PHONY: install lint format typecheck test test-cov check clean pre-commit pre-commit-all
 
 # Install dependencies
 install:

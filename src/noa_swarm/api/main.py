@@ -18,9 +18,11 @@ from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from noa_swarm.common.logging import get_logger
+from noa_swarm.observability import generate_metrics_output
 from noa_swarm.api.routes import discovery, mapping, aas, swarm, federated
 
 logger = get_logger(__name__)
@@ -149,6 +151,17 @@ def create_app() -> FastAPI:
                 "database": True,
                 "mqtt": True,
             },
+        )
+
+    @application.get("/metrics")
+    def metrics() -> Response:
+        """Prometheus metrics endpoint.
+
+        Returns metrics in Prometheus text exposition format for scraping.
+        """
+        return Response(
+            content=generate_metrics_output(),
+            media_type="text/plain; charset=utf-8",
         )
 
     logger.info(

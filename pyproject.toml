@@ -37,6 +37,7 @@ httpx = "^0.26.0"
 gradio = "^5.0"
 huggingface-hub = "<1.0.0"
 typer = "^0.21.1"
+prometheus-client = "^0.24.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

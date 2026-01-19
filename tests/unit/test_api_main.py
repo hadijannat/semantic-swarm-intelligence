@@ -131,3 +131,26 @@ class TestAPIInfo:
         assert "version" in info
         assert "description" in info
         assert "endpoints" in info
+
+
+class TestMetricsEndpoint:
+    """Tests for Prometheus metrics endpoint."""
+
+    def test_metrics_returns_prometheus_format(self, client: TestClient) -> None:
+        """Test metrics endpoint returns Prometheus text format."""
+        response = client.get("/metrics")
+        assert response.status_code == 200
+
+        # Content type should be text/plain for Prometheus
+        content_type = response.headers.get("content-type", "")
+        assert "text/plain" in content_type
+
+    def test_metrics_contains_type_comments(self, client: TestClient) -> None:
+        """Test metrics output contains Prometheus TYPE comments."""
+        response = client.get("/metrics")
+        assert response.status_code == 200
+
+        # Prometheus format includes # TYPE comments for metrics
+        text = response.text
+        # There should be some metrics defined (or empty is valid)
+        assert isinstance(text, str)

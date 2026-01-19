@@ -146,6 +146,7 @@ class TemperatureScaler(nn.Module):
             loss.backward(retain_graph=True)
             return loss
 
+        # Note: LBFGS.step() expects Callable[[], Tensor] but mypy infers stricter type
         optimizer.step(closure)  # type: ignore[arg-type]
 
         # Compute metrics after calibration
@@ -442,7 +443,11 @@ def calibrate_model(
 
     # Concatenate all predictions
     all_logits_tensor = torch.cat(all_logits, dim=0)
-    all_labels_tensor = torch.cat(all_labels, dim=0) if all_labels else torch.zeros(all_logits_tensor.size(0), dtype=torch.long)
+    if all_labels:
+        all_labels_tensor = torch.cat(all_labels, dim=0)
+    else:
+        # No labels collected - this shouldn't happen in normal use
+        raise ValueError("No labels collected from dataloader. Ensure batches contain labels.")
 
     # Fit temperature scaler
     scaler = TemperatureScaler()
@@ -600,8 +605,10 @@ def plot_reliability_diagram(
     """
     try:
         import matplotlib.pyplot as plt
-    except ImportError:
-        raise ImportError("matplotlib is required for plotting. Install with: pip install matplotlib")
+    except ImportError as err:
+        raise ImportError(
+            "matplotlib is required for plotting. Install with: pip install matplotlib"
+        ) from err
 
     data = compute_reliability_diagram(probs, labels, n_bins=n_bins)
 

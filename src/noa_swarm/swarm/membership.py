@@ -37,6 +37,15 @@ MemberCallback = Callable[["SwarmMember"], Awaitable[None] | None]
 # Member status type
 MemberStatus = Literal["alive", "suspect", "dead"]
 
+# Port validation constants
+MIN_PORT = 0  # 0 allowed as sentinel for unknown
+MAX_PORT = 65535
+
+# Default SWIM protocol timing constants (in seconds)
+DEFAULT_PING_INTERVAL = 1.0
+DEFAULT_PING_TIMEOUT = 0.3
+DEFAULT_SUSPECT_TIMEOUT = 5.0
+
 
 class SwarmMembershipError(Exception):
     """Base exception for swarm membership errors."""
@@ -93,8 +102,9 @@ class SwarmMember:
             raise ValueError("agent_id cannot be empty")
         if not self.host:
             raise ValueError("host cannot be empty")
-        if self.port <= 0 or self.port > 65535:
-            raise ValueError(f"port must be between 1 and 65535, got {self.port}")
+        # Port 0 allowed as sentinel for unknown; otherwise must be valid port
+        if self.port < MIN_PORT or self.port > MAX_PORT:
+            raise ValueError(f"port must be between {MIN_PORT} and {MAX_PORT}, got {self.port}")
 
     @property
     def address(self) -> str:
@@ -254,9 +264,9 @@ class SwarmMembership:
         settings: SwarmSettings | None = None,
         *,
         secret: str | None = None,
-        ping_interval: float = 1.0,
-        ping_timeout: float = 0.3,
-        suspect_timeout: float = 5.0,
+        ping_interval: float = DEFAULT_PING_INTERVAL,
+        ping_timeout: float = DEFAULT_PING_TIMEOUT,
+        suspect_timeout: float = DEFAULT_SUSPECT_TIMEOUT,
     ) -> None:
         """Initialize the swarm membership manager.
 

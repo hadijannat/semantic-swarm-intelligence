@@ -169,14 +169,14 @@ class TestSwarmMember:
                 port=7946,
             )
 
-    def test_member_validation_invalid_port_zero(self) -> None:
-        """Test validation rejects port 0."""
-        with pytest.raises(ValueError, match="port must be between"):
-            SwarmMember(
-                agent_id="agent-001",
-                host="192.168.1.100",
-                port=0,
-            )
+    def test_member_validation_allows_port_zero(self) -> None:
+        """Test validation allows port 0 as sentinel for unknown."""
+        member = SwarmMember(
+            agent_id="agent-001",
+            host="unknown",
+            port=0,
+        )
+        assert member.port == 0
 
     def test_member_validation_invalid_port_negative(self) -> None:
         """Test validation rejects negative port."""

@@ -12,6 +12,10 @@ Key components:
 - **ConsensusConfig**: Configuration for consensus thresholds and weights
 - **WeightedVote**: A vote with computed weights from calibration, reliability, and freshness
 - **ConsensusEngine**: Main engine for aggregating votes and determining quorum
+- **ReputationConfig**: Configuration for agent reliability scoring
+- **ReputationTracker**: Tracks agent reliability based on prediction accuracy
+- **AgentOutcome**: Record of a single prediction outcome
+- **AgentReputation**: Full reputation record for an agent
 
 Example usage:
     >>> from noa_swarm.swarm import SwarmMembership, SwarmMember
@@ -32,6 +36,12 @@ Example usage:
     >>> config = ConsensusConfig(hard_quorum_threshold=0.8)
     >>> engine = ConsensusEngine(config)
     >>> record = engine.reach_consensus(tag_id, votes, calibration_factors)
+
+    >>> from noa_swarm.swarm import ReputationTracker, ReputationConfig
+    >>> config = ReputationConfig(window_size=100)
+    >>> tracker = ReputationTracker(config)
+    >>> tracker.record_outcome("agent-001", "tag-123", "irdi-a", "irdi-a")
+    >>> score = tracker.get_reliability("agent-001")
 """
 
 from noa_swarm.swarm.consensus import (
@@ -61,6 +71,12 @@ from noa_swarm.swarm.membership import (
     SwarmMembershipError,
     SwarmNotStartedError,
 )
+from noa_swarm.swarm.reputation import (
+    AgentOutcome,
+    AgentReputation,
+    ReputationConfig,
+    ReputationTracker,
+)
 
 __all__ = [
     # Membership
@@ -88,4 +104,9 @@ __all__ = [
     "InsufficientVotesError",
     "NoConsensusError",
     "WeightedVote",
+    # Reputation
+    "AgentOutcome",
+    "AgentReputation",
+    "ReputationConfig",
+    "ReputationTracker",
 ]

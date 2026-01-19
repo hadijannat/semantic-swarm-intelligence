@@ -320,5 +320,6 @@ def log_with_context(
     log_func(message, **extra)
 
 
-# Initialize with default configuration
-configure_logging()
+# Note: Call configure_logging() in your application startup
+# to initialize the logging system. This allows library consumers
+# to configure logging before the module is imported elsewhere.

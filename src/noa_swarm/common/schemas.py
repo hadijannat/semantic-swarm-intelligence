@@ -15,7 +15,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from noa_swarm.common.ids import IRDI, IRDIError
+from noa_swarm.common.ids import IRDI
 
 
 def utc_now() -> datetime:

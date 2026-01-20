@@ -73,7 +73,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 # Default configuration
 ENV NOA_CONFIG_PATH="/app/configs/dev.yaml"
 ENV NOA_LOG_LEVEL="INFO"
-ENV DATABASE_URL="postgresql://noa:noa@postgres:5432/noa"
 ENV MQTT_HOST="mosquitto"
 ENV MQTT_PORT="1883"
 

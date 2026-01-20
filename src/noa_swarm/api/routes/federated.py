@@ -9,10 +9,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
+from noa_swarm.api.deps import get_federated_service
 from noa_swarm.common.logging import get_logger
+from noa_swarm.services.federated import FederatedService
 
 logger = get_logger(__name__)
 
@@ -74,22 +76,28 @@ class ModelMetrics(BaseModel):
 
 
 @router.get("/status", response_model=FederatedStatus)
-async def get_federated_status() -> FederatedStatus:
+async def get_federated_status(
+    service: FederatedService = Depends(get_federated_service),
+) -> FederatedStatus:
     """Get the current federated learning status.
 
     Returns information about ongoing training and model state.
     """
+    state = service.status()
     return FederatedStatus(
-        is_training=False,
-        current_round=0,
-        total_rounds=0,
-        participating_clients=0,
-        model_version=None,
+        is_training=state.is_training,
+        current_round=state.current_round,
+        total_rounds=state.total_rounds,
+        participating_clients=state.participating_clients,
+        model_version=state.model_version,
     )
 
 
 @router.post("/start")
-async def start_training(config: TrainingConfig) -> dict[str, Any]:
+async def start_training(
+    config: TrainingConfig,
+    service: FederatedService = Depends(get_federated_service),
+) -> dict[str, Any]:
     """Start a federated training session.
 
     Initiates federated learning with the specified configuration.
@@ -107,15 +115,18 @@ async def start_training(config: TrainingConfig) -> dict[str, Any]:
         dp_enabled=config.dp_enabled,
     )
 
+    state = service.start(config.num_rounds, config.min_clients)
     return {
         "status": "started",
         "config": config.model_dump(),
-        "message": f"Federated training started for {config.num_rounds} rounds",
+        "message": f"Federated training started for {state.total_rounds} rounds",
     }
 
 
 @router.post("/stop")
-async def stop_training() -> dict[str, str]:
+async def stop_training(
+    service: FederatedService = Depends(get_federated_service),
+) -> dict[str, str]:
     """Stop the current federated training session.
 
     Gracefully stops training after the current round completes.
@@ -123,6 +134,7 @@ async def stop_training() -> dict[str, str]:
     Returns:
         Confirmation of training stop.
     """
+    service.stop()
     return {
         "status": "stopped",
         "message": "Federated training stopped",
@@ -133,6 +145,7 @@ async def stop_training() -> dict[str, str]:
 async def list_rounds(
     offset: int = Query(0, ge=0, description="Offset for pagination"),
     limit: int = Query(50, ge=1, le=100, description="Maximum rounds to return"),
+    service: FederatedService = Depends(get_federated_service),
 ) -> list[RoundInfo]:
     """List training rounds.
 
@@ -145,8 +158,18 @@ async def list_rounds(
     Returns:
         List of training round information.
     """
-    # TODO: Integrate with actual Flower server
-    return []
+    state = service.status()
+    if state.total_rounds == 0:
+        return []
+
+    return [
+        RoundInfo(
+            round_number=state.current_round,
+            status="running" if state.is_training else "stopped",
+            clients_participated=state.participating_clients,
+            aggregation_method="fedprox",
+        )
+    ][offset : offset + limit]
 
 
 @router.get("/rounds/{round_number}", response_model=RoundInfo)
@@ -168,12 +191,13 @@ async def get_round(round_number: int) -> RoundInfo:
 
 
 @router.get("/clients", response_model=list[ClientInfo])
-async def list_clients() -> list[ClientInfo]:
+async def list_clients(
+    service: FederatedService = Depends(get_federated_service),
+) -> list[ClientInfo]:
     """List federated learning clients.
 
     Returns information about all registered FL clients.
     """
-    # TODO: Integrate with actual Flower server
     return []
 
 

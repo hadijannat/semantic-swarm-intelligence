@@ -96,6 +96,27 @@ class MLSettings(BaseSettings):
     batch_size: int = Field(default=32, description="Batch size for inference")
     use_gpu: bool = Field(default=True, description="Use GPU for inference if available")
     device: str = Field(default="auto", description="Device to use: auto, cpu, cuda, mps")
+    use_gnn: bool = Field(default=True, description="Enable GNN augmentation when available")
+    allow_untrained: bool = Field(
+        default=False,
+        description="Allow untrained models when checkpoints are missing",
+    )
+    charcnn_checkpoint: Path | None = Field(
+        default=None,
+        description="Path to CharCNN checkpoint file",
+    )
+    gnn_checkpoint: Path | None = Field(
+        default=None,
+        description="Path to GNN checkpoint file",
+    )
+    fusion_checkpoint: Path | None = Field(
+        default=None,
+        description="Path to fusion model checkpoint file",
+    )
+    calibration_path: Path | None = Field(
+        default=None,
+        description="Path to fusion calibration JSON file",
+    )
 
 
 class SwarmSettings(BaseSettings):

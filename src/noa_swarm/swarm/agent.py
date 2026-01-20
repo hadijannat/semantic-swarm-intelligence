@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from dataclasses import dataclass, field
+import inspect
 from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Self
@@ -220,9 +221,48 @@ class SemanticAgent:
                 logger.warning(f"Agent {self.agent_id} is already running")
                 return
 
-            logger.info(f"Starting agent {self.agent_id}")
+                logger.info(f"Starting agent {self.agent_id}")
 
             try:
+                if self._inference_engine is None:
+                    from noa_swarm.common.config import get_settings
+                    from noa_swarm.ml.serving import (
+                        FusionInferenceConfig,
+                        FusionInferenceEngine,
+                        InferenceConfig,
+                        RuleBasedInferenceEngine,
+                    )
+
+                    try:
+                        settings = get_settings()
+                        fusion_config = FusionInferenceConfig.from_settings(
+                            settings, agent_id=self.agent_id
+                        )
+                        fusion_engine = FusionInferenceEngine(fusion_config)
+
+                        if fusion_engine.is_ready:
+                            self._inference_engine = fusion_engine
+                            logger.info(
+                                "Using fusion inference engine",
+                                agent_id=self.agent_id,
+                            )
+                        else:
+                            self._inference_engine = RuleBasedInferenceEngine(
+                                InferenceConfig(agent_id=self.agent_id)
+                            )
+                            logger.info(
+                                "Falling back to rule-based inference",
+                                agent_id=self.agent_id,
+                            )
+                    except Exception as exc:
+                        logger.warning(
+                            "Fusion inference unavailable; using rule-based engine",
+                            error=str(exc),
+                        )
+                        self._inference_engine = RuleBasedInferenceEngine(
+                            InferenceConfig(agent_id=self.agent_id)
+                        )
+
                 # Connect to MQTT
                 await self._connect_mqtt()
 
@@ -347,8 +387,9 @@ class SemanticAgent:
         logger.debug(f"Running inference on {len(tags)} tags")
 
         try:
-            # Run inference (synchronous or async depending on engine)
-            hypotheses = self._inference_engine.infer(tags)
+            # Run inference (sync or async)
+            result = self._inference_engine.infer(tags)
+            hypotheses = await result if inspect.isawaitable(result) else result
 
             # Update metrics
             self._metrics.hypotheses_generated = len(hypotheses)
@@ -525,8 +566,16 @@ class SemanticAgent:
     async def _connect_mqtt(self) -> None:
         """Connect to the MQTT broker."""
         logger.debug(f"Connecting to MQTT at {self._config.mqtt_host}:{self._config.mqtt_port}")
-        # Connection is handled by the MQTTClient when injected or created
-        # This is a hook for testing
+        if self._mqtt_client is None:
+            from noa_swarm.connectors.mqtt import MQTTClient, MQTTClientConfig
+
+            config = MQTTClientConfig(
+                broker_host=self._config.mqtt_host,
+                broker_port=self._config.mqtt_port,
+                client_id=self._config.agent_id,
+            )
+            self._mqtt_client = MQTTClient(config)
+        await self._mqtt_client.connect()
 
     async def _disconnect_mqtt(self) -> None:
         """Disconnect from the MQTT broker."""
@@ -540,8 +589,15 @@ class SemanticAgent:
     async def _connect_opcua(self) -> None:
         """Connect to the OPC UA server."""
         logger.debug(f"Connecting to OPC UA at {self._config.opcua_endpoint}")
-        # Connection is handled by the OPCUABrowser when injected or created
-        # This is a hook for testing
+        if self._opcua_browser is None:
+            from noa_swarm.connectors.opcua_asyncua import OPCUABrowser
+
+            self._opcua_browser = OPCUABrowser(self._config.opcua_endpoint)
+        try:
+            await self._opcua_browser.connect()
+        except Exception as exc:
+            logger.warning(f"OPC UA connection failed: {exc}")
+            self._opcua_browser = None
 
     async def _disconnect_opcua(self) -> None:
         """Disconnect from the OPC UA server."""
@@ -555,8 +611,13 @@ class SemanticAgent:
     async def _start_gossip(self) -> None:
         """Start the gossip protocol."""
         logger.debug("Starting gossip protocol")
-        # Gossip start is handled by the HypothesisGossip when injected or created
-        # This is a hook for testing
+        if self._mqtt_client is None:
+            raise SemanticAgentError("MQTT client not initialized")
+        if self._gossip is None:
+            from noa_swarm.swarm.gossip import HypothesisGossip
+
+            self._gossip = HypothesisGossip(self._mqtt_client, self.agent_id)
+        await self._gossip.start()
 
     async def _stop_gossip(self) -> None:
         """Stop the gossip protocol."""
@@ -632,3 +693,59 @@ class SemanticAgent:
     ) -> None:
         """Exit async context manager and stop agent."""
         await self.stop()
+
+
+def _resolve_env(name: str, default: str | None = None) -> str | None:
+    import os
+
+    value = os.getenv(name)
+    return value if value is not None else default
+
+
+async def _run_agent_from_env() -> None:
+    """Run an agent using environment variables for configuration."""
+    import os
+    import signal
+
+    agent_id = _resolve_env("NOA_AGENT_ID") or "agent-001"
+    opcua_endpoint = (
+        _resolve_env("NOA_OPCUA_ENDPOINT")
+        or _resolve_env("OPCUA_ENDPOINT")
+        or "opc.tcp://localhost:4840"
+    )
+    mqtt_host = _resolve_env("MQTT_HOST", "localhost") or "localhost"
+    mqtt_port = int(_resolve_env("MQTT_PORT", "1883") or 1883)
+    poll_interval = float(_resolve_env("NOA_POLL_INTERVAL", "30.0") or 30.0)
+
+    config = SemanticAgentConfig(
+        agent_id=agent_id,
+        opcua_endpoint=opcua_endpoint,
+        mqtt_host=mqtt_host,
+        mqtt_port=mqtt_port,
+        poll_interval_seconds=poll_interval,
+    )
+
+    agent = SemanticAgent(config)
+
+    stop_event = asyncio.Event()
+
+    def _handle_stop() -> None:
+        stop_event.set()
+
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        with contextlib.suppress(NotImplementedError):
+            loop.add_signal_handler(sig, _handle_stop)
+
+    await agent.start()
+    await stop_event.wait()
+    await agent.stop()
+
+
+def main() -> None:
+    """CLI entry point for running a semantic agent."""
+    asyncio.run(_run_agent_from_env())
+
+
+if __name__ == "__main__":
+    main()

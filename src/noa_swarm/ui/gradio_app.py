@@ -13,8 +13,26 @@ from __future__ import annotations
 
 from typing import Any
 
-import gradio as gr
 import httpx
+
+# Compatibility shim for older gradio expectations when huggingface_hub removes HfFolder.
+try:
+    import huggingface_hub  # type: ignore
+
+    if not hasattr(huggingface_hub, "HfFolder"):
+        class HfFolder:  # type: ignore[dead-code]
+            """Fallback HfFolder stub for gradio imports."""
+
+            @staticmethod
+            def get_token() -> str | None:  # pragma: no cover - compatibility shim
+                return None
+
+        huggingface_hub.HfFolder = HfFolder  # type: ignore[attr-defined]
+except Exception:
+    # If huggingface_hub is unavailable, gradio will handle import errors later.
+    pass
+
+import gradio as gr
 
 from noa_swarm.common.logging import get_logger
 

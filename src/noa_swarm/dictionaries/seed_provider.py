@@ -817,6 +817,20 @@ class SeedDictionaryProvider(DictionaryProvider):
         results.sort(key=lambda r: r.score, reverse=True)
         return results[:max_results]
 
+    async def list_concepts(self, limit: int | None = None) -> list[DictionaryConcept]:
+        """Return the locally cached seed concepts.
+
+        Args:
+            limit: Optional maximum number of concepts to return.
+
+        Returns:
+            List of DictionaryConcept entries.
+        """
+        concepts = list(self._concepts.values())
+        if limit is not None:
+            return concepts[:limit]
+        return concepts
+
     def _compute_match_score(self, concept: DictionaryConcept, query: str) -> float:
         """Compute match score for a concept against a query.
 

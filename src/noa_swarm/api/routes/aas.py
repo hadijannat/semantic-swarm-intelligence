@@ -10,20 +10,14 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
+from noa_swarm.api.deps import get_aas_service
 from noa_swarm.common.logging import get_logger
-from noa_swarm.aas import (
-    TagMappingSubmodel,
-    DiscoveredTag,
-    MappingStatus,
-    AASExporter,
-    ExportFormat,
-    ExportConfig,
-    create_tag_mapping_aas,
-)
+from noa_swarm.services.aas import AASService
+from noa_swarm.aas import AASExporter, ExportConfig, ExportFormat, create_tag_mapping_aas
 
 logger = get_logger(__name__)
 
@@ -60,39 +54,40 @@ class ExportResponse(BaseModel):
 
 
 @router.get("/submodel", response_model=SubmodelInfo)
-async def get_submodel_info() -> SubmodelInfo:
+async def get_submodel_info(
+    service: AASService = Depends(get_aas_service),
+) -> SubmodelInfo:
     """Get information about the current tag mapping submodel.
 
     Returns statistics about the current tag mapping state.
     """
-    # TODO: Integrate with actual submodel storage
+    submodel = await service.build_submodel("urn:noa:submodel:tagmapping:default")
+    stats = submodel.get_statistics()
     return SubmodelInfo(
-        submodel_id="urn:noa:submodel:tagmapping:default",
-        semantic_id="urn:noa:sm:TagMapping:1.0",
-        tag_count=0,
-        mapping_rate=0.0,
+        submodel_id=submodel.submodel_id,
+        semantic_id=submodel.semantic_id,
+        tag_count=len(submodel.tags),
+        mapping_rate=stats.mapping_rate,
         statistics={
-            "total": 0,
-            "pending": 0,
-            "mapped": 0,
-            "verified": 0,
-            "rejected": 0,
-            "conflict": 0,
+            "total": stats.total_tags,
+            "pending": stats.pending_tags,
+            "mapped": stats.mapped_tags,
+            "verified": stats.verified_tags,
+            "rejected": stats.rejected_tags,
+            "conflict": stats.conflict_tags,
         },
     )
 
 
 @router.get("/submodel/json")
-async def get_submodel_json() -> dict[str, Any]:
+async def get_submodel_json(
+    service: AASService = Depends(get_aas_service),
+) -> dict[str, Any]:
     """Get the tag mapping submodel as JSON.
 
     Returns the complete submodel structure in AAS JSON format.
     """
-    # Create sample submodel for demonstration
-    submodel = TagMappingSubmodel(submodel_id="urn:noa:submodel:tagmapping:default")
-
-    # TODO: Populate from actual mapping storage
-
+    submodel = await service.build_submodel("urn:noa:submodel:tagmapping:default")
     aas, sm = create_tag_mapping_aas(
         submodel=submodel,
         aas_id="urn:noa:aas:tagmapping:default",
@@ -107,7 +102,10 @@ async def get_submodel_json() -> dict[str, Any]:
 
 
 @router.post("/export/json")
-async def export_json(request: ExportRequest) -> FileResponse:
+async def export_json(
+    request: ExportRequest,
+    service: AASService = Depends(get_aas_service),
+) -> FileResponse:
     """Export the AAS package as JSON.
 
     Creates a JSON file containing the AAS and submodel.
@@ -118,10 +116,7 @@ async def export_json(request: ExportRequest) -> FileResponse:
     Returns:
         JSON file download.
     """
-    submodel = TagMappingSubmodel(submodel_id=request.submodel_id)
-
-    # TODO: Populate from actual mapping storage
-
+    submodel = await service.build_submodel(request.submodel_id)
     aas, sm = create_tag_mapping_aas(
         submodel=submodel,
         aas_id=request.aas_id,
@@ -155,7 +150,10 @@ async def export_json(request: ExportRequest) -> FileResponse:
 
 
 @router.post("/export/xml")
-async def export_xml(request: ExportRequest) -> FileResponse:
+async def export_xml(
+    request: ExportRequest,
+    service: AASService = Depends(get_aas_service),
+) -> FileResponse:
     """Export the AAS package as XML.
 
     Creates an XML file containing the AAS and submodel.
@@ -166,10 +164,7 @@ async def export_xml(request: ExportRequest) -> FileResponse:
     Returns:
         XML file download.
     """
-    submodel = TagMappingSubmodel(submodel_id=request.submodel_id)
-
-    # TODO: Populate from actual mapping storage
-
+    submodel = await service.build_submodel(request.submodel_id)
     aas, sm = create_tag_mapping_aas(
         submodel=submodel,
         aas_id=request.aas_id,
@@ -203,7 +198,10 @@ async def export_xml(request: ExportRequest) -> FileResponse:
 
 
 @router.post("/export/aasx")
-async def export_aasx(request: ExportRequest) -> FileResponse:
+async def export_aasx(
+    request: ExportRequest,
+    service: AASService = Depends(get_aas_service),
+) -> FileResponse:
     """Export the AAS package as AASX.
 
     Creates an AASX package file containing the AAS and submodel.
@@ -214,10 +212,7 @@ async def export_aasx(request: ExportRequest) -> FileResponse:
     Returns:
         AASX file download.
     """
-    submodel = TagMappingSubmodel(submodel_id=request.submodel_id)
-
-    # TODO: Populate from actual mapping storage
-
+    submodel = await service.build_submodel(request.submodel_id)
     aas, sm = create_tag_mapping_aas(
         submodel=submodel,
         aas_id=request.aas_id,

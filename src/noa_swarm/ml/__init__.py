@@ -21,6 +21,13 @@ from noa_swarm.ml.training import (
     compute_macro_f1,
     compute_top_k_accuracy,
 )
+from noa_swarm.ml.serving import (
+    FusionInferenceConfig,
+    FusionInferenceEngine,
+    InferenceConfig,
+    RuleBasedInferenceEngine,
+    build_fusion_engine_from_env,
+)
 
 __all__ = [
     # Datasets
@@ -37,4 +44,10 @@ __all__ = [
     "compute_confusion_matrix",
     "compute_macro_f1",
     "compute_top_k_accuracy",
+    # Serving
+    "InferenceConfig",
+    "RuleBasedInferenceEngine",
+    "FusionInferenceConfig",
+    "FusionInferenceEngine",
+    "build_fusion_engine_from_env",
 ]

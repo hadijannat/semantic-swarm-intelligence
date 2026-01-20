@@ -429,41 +429,45 @@ class TestDictionaryEntryExtraction:
 
 
 @pytest.mark.integration
-class TestFilesystemStubs:
-    """Tests for filesystem connector stubs."""
+class TestFilesystemConnectors:
+    """Tests for filesystem connector import/export."""
 
-    async def test_import_csv_raises_not_implemented(self) -> None:
-        """Test that CSV import raises NotImplementedError."""
-        from pathlib import Path
+    async def test_import_csv_round_trip(self, tmp_path: Path) -> None:
+        """Test CSV import and export."""
+        from noa_swarm.connectors.filesystem import export_to_csv, import_from_csv
+        from noa_swarm.common.schemas import TagRecord
 
-        from noa_swarm.connectors.filesystem import import_from_csv
+        csv_path = tmp_path / "tags.csv"
+        tags = [
+            TagRecord(
+                node_id="ns=2;s=TIC-101.PV",
+                browse_name="TIC-101.PV",
+                source_server="opc.tcp://localhost:4840",
+            )
+        ]
 
-        with pytest.raises(NotImplementedError):
-            await import_from_csv(Path("test.csv"))
+        await export_to_csv(tags, csv_path)
+        imported = await import_from_csv(csv_path)
 
-    async def test_export_csv_raises_not_implemented(self) -> None:
-        """Test that CSV export raises NotImplementedError."""
-        from pathlib import Path
+        assert len(imported) == 1
+        assert imported[0].browse_name == "TIC-101.PV"
 
-        from noa_swarm.connectors.filesystem import export_to_csv
+    async def test_import_json_round_trip(self, tmp_path: Path) -> None:
+        """Test JSON import and export."""
+        from noa_swarm.connectors.filesystem import export_to_json, import_from_json
+        from noa_swarm.common.schemas import TagRecord
 
-        with pytest.raises(NotImplementedError):
-            await export_to_csv([], Path("test.csv"))
+        json_path = tmp_path / "tags.json"
+        tags = [
+            TagRecord(
+                node_id="ns=2;s=FIC-201.SP",
+                browse_name="FIC-201.SP",
+                source_server="opc.tcp://localhost:4840",
+            )
+        ]
 
-    async def test_import_json_raises_not_implemented(self) -> None:
-        """Test that JSON import raises NotImplementedError."""
-        from pathlib import Path
+        await export_to_json(tags, json_path)
+        imported = await import_from_json(json_path)
 
-        from noa_swarm.connectors.filesystem import import_from_json
-
-        with pytest.raises(NotImplementedError):
-            await import_from_json(Path("test.json"))
-
-    async def test_export_json_raises_not_implemented(self) -> None:
-        """Test that JSON export raises NotImplementedError."""
-        from pathlib import Path
-
-        from noa_swarm.connectors.filesystem import export_to_json
-
-        with pytest.raises(NotImplementedError):
-            await export_to_json([], Path("test.json"))
+        assert len(imported) == 1
+        assert imported[0].browse_name == "FIC-201.SP"

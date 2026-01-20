@@ -383,3 +383,74 @@ class ConsensusRecord(BaseModel):
 # Type aliases for convenience
 TagId = str
 AgentId = str
+
+
+MappingStatus = Literal["pending", "mapped", "verified", "rejected", "conflict"]
+
+
+class TagMappingRecord(BaseModel):
+    """Represents the current mapping state for a discovered tag."""
+
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        extra="forbid",
+    )
+
+    tag_id: str = Field(
+        ...,
+        description="Unique identifier for the tag (server|node_id)",
+        min_length=1,
+    )
+    tag_name: str = Field(
+        ...,
+        description="Tag name or browse name",
+        min_length=1,
+    )
+    browse_path: str = Field(
+        ...,
+        description="OPC UA browse path for the tag",
+        min_length=1,
+    )
+    irdi: str | None = Field(
+        default=None,
+        description="Mapped IEC 61987 IRDI (if mapped)",
+    )
+    preferred_name: str | None = Field(
+        default=None,
+        description="Preferred dictionary name for the IRDI",
+    )
+    status: MappingStatus = Field(
+        default="pending",
+        description="Mapping status",
+    )
+    confidence: Annotated[float | None, Field(ge=0.0, le=1.0)] = Field(
+        default=None,
+        description="Confidence score for the mapping",
+    )
+    candidates: list[Candidate] = Field(
+        default_factory=list,
+        description="Candidate IRDIs proposed for this tag",
+    )
+    created_at: datetime = Field(
+        default_factory=utc_now,
+        description="Timestamp when mapping was created",
+    )
+    updated_at: datetime = Field(
+        default_factory=utc_now,
+        description="Timestamp when mapping was last updated",
+    )
+
+    @field_validator("irdi")
+    @classmethod
+    def validate_optional_irdi(cls, v: str | None) -> str | None:
+        """Validate and normalize the IRDI string when provided."""
+        if v is None:
+            return v
+        if not IRDI.is_valid(v):
+            raise ValueError(f"Invalid IRDI format: {v}")
+        return IRDI.parse(v).to_canonical()
+
+    @property
+    def is_mapped(self) -> bool:
+        """Return True when the mapping is in a mapped or verified state."""
+        return self.status in {"mapped", "verified"}

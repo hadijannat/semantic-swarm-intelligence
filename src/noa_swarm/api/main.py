@@ -24,6 +24,7 @@ from pydantic import BaseModel
 from noa_swarm.common.logging import get_logger
 from noa_swarm.observability import generate_metrics_output
 from noa_swarm.api.routes import discovery, mapping, aas, swarm, federated
+from noa_swarm.services.state import get_state
 
 logger = get_logger(__name__)
 
@@ -81,6 +82,12 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
         openapi_url="/openapi.json",
     )
+
+    @application.on_event("startup")
+    async def _startup() -> None:
+        state = get_state()
+        if state.database is not None:
+            await state.database.init_models()
 
     # Configure CORS
     application.add_middleware(

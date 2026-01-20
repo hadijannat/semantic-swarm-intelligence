@@ -1,4 +1,5 @@
-.PHONY: install lint format typecheck test test-cov check clean pre-commit pre-commit-all
+.PHONY: install lint format typecheck test test-cov test-unit test-int check clean pre-commit pre-commit-all
+.PHONY: docker-build docker-up docker-down docker-logs train benchmark reproduce help
 
 # Install dependencies
 install:
@@ -46,3 +47,67 @@ clean:
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 	find . -type f -name ".coverage" -delete 2>/dev/null || true
 	find . -type f -name "coverage.xml" -delete 2>/dev/null || true
+
+# Run unit tests only
+test-unit:
+	poetry run pytest tests/unit/ -v
+
+# Run integration tests only
+test-int:
+	poetry run pytest tests/integration/ -v
+
+# Docker commands
+docker-build:
+	docker compose -f docker/docker-compose.dev.yml build
+
+docker-up:
+	docker compose -f docker/docker-compose.dev.yml up -d
+	@echo "Services started:"
+	@echo "  API:     http://localhost:8000"
+	@echo "  Gradio:  http://localhost:7860"
+	@echo "  Flower:  http://localhost:8080"
+	@echo "  MQTT:    localhost:1883"
+	@echo "  Postgres: localhost:5432"
+
+docker-down:
+	docker compose -f docker/docker-compose.dev.yml down
+
+docker-logs:
+	docker compose -f docker/docker-compose.dev.yml logs -f
+
+# ML training and benchmarks
+train:
+	poetry run python scripts/train_baseline.py --seed 42 --epochs 10
+
+benchmark:
+	./scripts/run_benchmarks.sh --quick
+
+reproduce:
+	./scripts/run_benchmarks.sh
+
+# Help
+help:
+	@echo "NOA Semantic Swarm Mapper - Available Commands"
+	@echo "=============================================="
+	@echo ""
+	@echo "Development:"
+	@echo "  make install      - Install dependencies"
+	@echo "  make lint         - Run linting"
+	@echo "  make format       - Format code"
+	@echo "  make typecheck    - Type checking"
+	@echo ""
+	@echo "Testing:"
+	@echo "  make test         - Run all tests"
+	@echo "  make test-unit    - Unit tests only"
+	@echo "  make test-int     - Integration tests"
+	@echo "  make test-cov     - Tests with coverage"
+	@echo ""
+	@echo "Docker:"
+	@echo "  make docker-build - Build images"
+	@echo "  make docker-up    - Start stack"
+	@echo "  make docker-down  - Stop stack"
+	@echo ""
+	@echo "ML:"
+	@echo "  make train        - Train baseline model"
+	@echo "  make benchmark    - Quick benchmark"
+	@echo "  make reproduce    - Full reproducibility test"

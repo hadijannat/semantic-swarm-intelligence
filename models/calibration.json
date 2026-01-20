@@ -1,0 +1,15 @@
+{
+  "temperature_property": 0.9999992847442627,
+  "temperature_signal": 1.0,
+  "ece_property_before": 5.900859832763672e-06,
+  "ece_property_after": 5.900859832763672e-06,
+  "ece_signal_before": 1.3709068298339844e-06,
+  "ece_signal_after": 1.3709068298339844e-06,
+  "nll_property_before": 5.9617859733407386e-06,
+  "nll_property_after": 5.9617859733407386e-06,
+  "nll_signal_before": 1.2972077456652187e-06,
+  "nll_signal_after": 1.2972077456652187e-06,
+  "num_samples": 500,
+  "seed": 1337,
+  "checkpoint": "models/best_model.pt"
+}

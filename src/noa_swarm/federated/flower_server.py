@@ -337,3 +337,37 @@ def create_fedprox_server(
     )
 
     return server_config, strategy
+
+
+def main() -> None:
+    """CLI entry point for starting the FedProx Flower server."""
+    import os
+
+    num_rounds = int(os.getenv("FL_ROUNDS", "10"))
+    min_clients = int(os.getenv("FL_MIN_CLIENTS", "2"))
+    server_address = os.getenv("FL_SERVER_ADDRESS", "0.0.0.0:8080")
+
+    config = FedProxServerConfig(
+        num_rounds=num_rounds,
+        min_fit_clients=min_clients,
+        min_evaluate_clients=min_clients,
+        min_available_clients=min_clients,
+        server_address=server_address,
+    )
+    server_config, strategy = create_fedprox_server(config)
+
+    logger.info(
+        "Starting Flower server",
+        address=config.server_address,
+        rounds=config.num_rounds,
+        min_clients=config.min_fit_clients,
+    )
+    fl.server.start_server(
+        server_address=config.server_address,
+        config=server_config,
+        strategy=strategy,
+    )
+
+
+if __name__ == "__main__":
+    main()

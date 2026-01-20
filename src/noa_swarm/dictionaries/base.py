@@ -216,6 +216,22 @@ class DictionaryProvider(ABC):
         """
         ...
 
+    async def list_concepts(self, limit: int | None = None) -> list[DictionaryConcept]:
+        """Return a list of concepts available from this provider.
+
+        Providers backed by remote APIs may return an empty list to avoid
+        large downloads. Local/offline providers should override this method
+        to expose their cached concepts.
+
+        Args:
+            limit: Optional maximum number of concepts to return.
+
+        Returns:
+            List of DictionaryConcept entries (possibly empty).
+        """
+        _ = limit
+        return []
+
 
 class ProviderRegistry:
     """Registry for managing dictionary providers.
@@ -356,3 +372,38 @@ class ProviderRegistry:
         # Sort by score descending and limit results
         all_results.sort(key=lambda r: r.score, reverse=True)
         return all_results[:max_results]
+
+    async def list_concepts(
+        self,
+        limit: int | None = None,
+    ) -> list[DictionaryConcept]:
+        """Collect concepts from all available providers.
+
+        Args:
+            limit: Optional maximum number of concepts to return.
+
+        Returns:
+            Combined list of concepts with duplicate IRDIs removed.
+        """
+        concepts: dict[str, DictionaryConcept] = {}
+
+        for name, provider in self._providers.items():
+            try:
+                if await provider.is_available():
+                    provider_concepts = await provider.list_concepts(limit=limit)
+                    for concept in provider_concepts:
+                        concepts.setdefault(concept.irdi, concept)
+            except Exception as e:
+                logger.warning(
+                    "Provider concept listing failed",
+                    provider=name,
+                    error=str(e),
+                )
+
+            if limit is not None and len(concepts) >= limit:
+                break
+
+        items = list(concepts.values())
+        if limit is not None:
+            items = items[:limit]
+        return items

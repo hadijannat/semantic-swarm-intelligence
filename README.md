@@ -1,234 +1,123 @@
 # NOA Semantic Swarm Mapper
 
-A distributed system for automatically mapping brownfield industrial tags to PA-DIM / IEC 61987 (IRDI) semantics using swarm intelligence and federated learning. Built following the NAMUR Open Architecture (NOA) principles.
+[![CI](https://github.com/hadijannat/semantic-swarm-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/hadijannat/semantic-swarm-intelligence/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/hadijannat/semantic-swarm-intelligence)](https://github.com/hadijannat/semantic-swarm-intelligence/releases)
+[![License](https://img.shields.io/github/license/hadijannat/semantic-swarm-intelligence)](LICENSE)
 
-## Features
+**Semantic Swarm Intelligence for Automated Tag Mapping**
 
-- **OPC UA Discovery**: Async tag discovery with read-only enforcement
-- **ML-Powered Mapping**: CharCNN + GNN fusion with temperature-scaled calibration
-- **Swarm Consensus**: SWIM membership + MQTT gossip with confidence-weighted voting
-- **Federated Learning**: FedProx with optional differential privacy
-- **Dictionary Integration**: IEC CDD, eCl@ss, and curated seed providers
-- **AAS Export**: BaSyx SDK integration with JSON/XML/AASX formats
-- **Full Observability**: Prometheus metrics, structured logging, correlation IDs
+A distributed, NOA-aligned toolchain that maps brownfield industrial tags to **PA-DIM / IEC 61987 IRDI semantics**, reaches **swarm consensus**, and exports **AAS artifacts**. Built for read-only safety, reproducibility, and publication-grade evaluation.
+
+---
+
+## Why this exists
+
+NOA enables a second channel for plant data without touching control systems. The blocker is **semantic entropy**: heterogeneous tag names across vendors, eras, and sites. This project tackles that gap with a blend of **rule-based inference**, **ML fusion (CharCNN + GNN)**, **distributed consensus**, and **federated learning**, producing standardized semantics and AAS-ready exports.
+
+---
+
+## Core capabilities
+
+- **OPC UA Discovery (read-only by default)** with backpressure and metadata extraction
+- **Semantic inference**: rules + CharCNN + optional GNN fusion with calibrated confidences
+- **Swarm consensus**: SWIM-style membership + MQTT gossip + confidence-weighted voting
+- **Federated learning**: Flower FedProx, optional differential privacy hooks
+- **Dictionary integration**: IEC CDD, eCl@ss, and curated seed concepts
+- **AAS export**: JSON / XML / AASX via Eclipse BaSyx SDK
+- **Observability**: Prometheus metrics, structured logging, correlation IDs
+
+---
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         NOA Semantic Swarm                          │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐                      │
-│  │ Agent 1  │    │ Agent 2  │    │ Agent 3  │   Semantic Agents    │
-│  │ CharCNN  │    │ CharCNN  │    │ CharCNN  │   (discover, infer,  │
-│  │ + GNN    │    │ + GNN    │    │ + GNN    │    vote, commit)     │
-│  └────┬─────┘    └────┬─────┘    └────┬─────┘                      │
-│       │               │               │                             │
-│       └───────────────┼───────────────┘                             │
-│                       │                                             │
-│                       ▼                                             │
-│              ┌────────────────┐                                     │
-│              │  MQTT Broker   │  Gossip + Consensus                 │
-│              │  (Mosquitto)   │                                     │
-│              └────────┬───────┘                                     │
-│                       │                                             │
-│       ┌───────────────┼───────────────┐                             │
-│       ▼               ▼               ▼                             │
-│  ┌─────────┐    ┌──────────┐    ┌──────────┐                       │
-│  │ OPC UA  │    │ Flower   │    │   AAS    │                       │
-│  │ Server  │    │ Server   │    │ Registry │                       │
-│  └─────────┘    └──────────┘    └──────────┘                       │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
+```mermaid
+flowchart LR
+  subgraph Edge[psM+O / Edge Domain]
+    OPCUA[OPC UA Server]
+    Agent1[Semantic Agent]
+    Agent2[Semantic Agent]
+    Agent3[Semantic Agent]
+  end
 
-## Requirements
+  subgraph DMZ[M+O / DMZ Services]
+    MQTT[MQTT Broker]
+    FL[Flower Server]
+    REG[Mapping Registry]
+    AAS[AAS Generator]
+    API[FastAPI Service]
+    UI[Gradio UI]
+  end
 
-- Python 3.11+
-- Poetry 1.7+
-- Docker & Docker Compose (for full stack)
+  OPCUA --> Agent1
+  OPCUA --> Agent2
+  OPCUA --> Agent3
 
-## Installation
+  Agent1 <--> MQTT
+  Agent2 <--> MQTT
+  Agent3 <--> MQTT
 
-```bash
-# Clone the repository
-git clone https://github.com/hadijannat/semantic-swarm-intelligence.git
-cd semantic-swarm-intelligence
+  Agent1 <--> FL
+  Agent2 <--> FL
+  Agent3 <--> FL
 
-# Install dependencies
-poetry install
-
-# Install pre-commit hooks
-poetry run pre-commit install
+  MQTT --> REG
+  REG --> AAS
+  AAS --> API
+  API --> UI
 ```
 
-## Quickstart
+### Dataflow (high-level)
+1. **Discover** tags via OPC UA (browse/read/subscribe only).
+2. **Infer** IRDI candidates locally (rules + ML).
+3. **Gossip** hypotheses via MQTT and membership metadata.
+4. **Consensus** commits weighted vote results to registry.
+5. **Export** AAS submodel artifacts for downstream tooling.
 
-### Option 1: Docker Compose (Recommended)
+---
 
-Start the full development stack with a single command:
+## Quickstart (Docker Compose)
 
 ```bash
 make docker-up
 ```
 
-This starts:
-- **API Server**: http://localhost:8000 (FastAPI with OpenAPI docs at `/docs`)
-- **Gradio Dashboard**: http://localhost:7860
-- **Flower Server**: http://localhost:8080 (Federated learning)
-- **MQTT Broker**: localhost:1883
-- **PostgreSQL**: localhost:5432
-- **3 Semantic Agents**: Pre-configured and connected
+Services:
+- API: http://localhost:8000 (OpenAPI: `/docs`)
+- UI: http://localhost:7860
+- Flower: http://localhost:8080
+- MQTT: localhost:1883
+- Postgres: localhost:5432
 
-Stop the stack:
+Stop:
 ```bash
 make docker-down
 ```
 
-### Option 2: Local Development
+---
+
+## Local Development
 
 ```bash
-# Start the API server
-poetry run uvicorn noa_swarm.api.main:app --reload
+# Install dependencies
+make install
 
-# In another terminal, start a semantic agent
+# Run API server
+poetry run uvicorn noa_swarm.api.main:app --reload
+```
+
+Start a semantic agent:
+```bash
 NOA_AGENT_ID=agent-001 \
 NOA_OPCUA_ENDPOINT=opc.tcp://localhost:4840 \
 MQTT_HOST=localhost \
 poetry run python -m noa_swarm.swarm.agent
 ```
 
-### ML Inference Modes
-
-The agent supports two inference modes:
-
-1. **Rule-based** (default): ISA-style prefix parsing + dictionary search
-2. **ML Fusion**: CharCNN + GNN with calibrated confidence scores
-
-To enable ML inference, provide model artifacts:
-
-```bash
-# Train a baseline model
-make train
-
-# Or specify paths via environment
-NOA_ML_CHARCNN_CHECKPOINT=models/best_model.pt
-NOA_ML_CALIBRATION_PATH=models/calibration.json
-NOA_ML_USE_GNN=true
-```
-
-## Development
-
-```bash
-# Run linting
-make lint
-
-# Format code
-make format
-
-# Type checking
-make typecheck
-
-# Run all checks
-make check
-
-# Clean cache files
-make clean
-```
-
-## Testing
-
-```bash
-# Run all tests (870 tests)
-make test
-
-# Run with coverage
-make test-cov
-
-# Unit tests only
-make test-unit
-
-# Integration tests only
-make test-int
-```
-
-### ML Reproducibility
-
-Verify deterministic training with fixed seeds:
-
-```bash
-# Quick benchmark (reduced samples)
-make benchmark
-
-# Full reproducibility test
-make reproduce
-```
-
-## API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check |
-| `/metrics` | GET | Prometheus metrics |
-| `/api/v1/discovery/tags` | GET | List discovered tags |
-| `/api/v1/discovery/start` | POST | Start OPC UA discovery |
-| `/api/v1/mapping/hypotheses` | GET | List mapping hypotheses |
-| `/api/v1/mapping/consensus` | GET | Get consensus records |
-| `/api/v1/aas/submodel` | GET | Export AAS submodel |
-| `/api/v1/aas/export` | POST | Export to AASX package |
-| `/api/v1/swarm/agents` | GET | List active agents |
-| `/api/v1/swarm/status` | GET | Swarm status |
-| `/api/v1/federated/status` | GET | FL round status |
-
-Full OpenAPI documentation available at `/docs` when the API is running.
-
-## Project Structure
-
-```
-semantic-swarm-intelligence/
-├── src/noa_swarm/
-│   ├── aas/                 # AAS export (BaSyx SDK)
-│   ├── api/                 # FastAPI application
-│   │   └── routes/          # REST API endpoints
-│   ├── common/              # Config, logging, schemas, IRDI
-│   ├── connectors/          # OPC UA, MQTT, filesystem
-│   ├── dictionaries/        # IEC CDD, eCl@ss, seed providers
-│   ├── federated/           # Flower client/server, FedProx, DP
-│   ├── ml/
-│   │   ├── datasets/        # TEP, C-MAPSS, synthetic
-│   │   ├── models/          # CharCNN, GNN, fusion
-│   │   ├── serving/         # Inference engine
-│   │   └── training/        # Local training, calibration
-│   ├── observability/       # Metrics, correlation IDs
-│   ├── services/            # Domain services
-│   ├── storage/             # Repository layer
-│   ├── swarm/               # Agent, consensus, reputation
-│   └── ui/                  # Gradio dashboard
-├── docker/
-│   ├── Dockerfile.agent     # Semantic agent image
-│   ├── Dockerfile.server    # API/Flower server image
-│   └── docker-compose.dev.yml
-├── configs/
-│   ├── dev.yaml             # Development settings
-│   └── example_plant.yaml   # Example plant configuration
-├── scripts/
-│   ├── train_baseline.py    # ML training script
-│   ├── run_benchmarks.sh    # Reproducibility tests
-│   ├── download_datasets.py # Dataset downloader
-│   └── export_aas.py        # CLI AAS export
-├── tests/
-│   ├── unit/                # Unit tests
-│   └── integration/         # Integration tests
-├── models/                  # Model artifacts (gitignored)
-├── pyproject.toml
-├── Makefile
-└── README.md
-```
+---
 
 ## Configuration
 
-Configuration via environment variables or YAML files:
+Use environment variables or YAML:
 
 ```yaml
 # configs/dev.yaml
@@ -248,33 +137,126 @@ noa:
     hard_quorum_threshold: 0.8
 ```
 
-## Success Criteria
+---
 
-| Metric | Target | Status |
-|--------|--------|--------|
-| OPC UA browse ≥1,000 nodes in <10 min | ✓ | Achieved |
-| CharCNN Macro F1 ≥ 0.80 | ✓ | Achieved |
-| 3-agent swarm converges on ≥90% of 500 tags in ≤30s | ✓ | Achieved |
-| Flower completes 3 FL rounds with FedProx | ✓ | Achieved |
-| AAS export loadable by BaSyx tooling | ✓ | Achieved |
-| `make reproduce` generates benchmark table | ✓ | Achieved |
+## API (selected endpoints)
+
+Base URL: `http://localhost:8000`
+
+| Domain | Endpoint | Method | Purpose |
+|---|---|---|---|
+| Health | `/health` | GET | Liveness check |
+| Metrics | `/metrics` | GET | Prometheus scrape |
+| Discovery | `/api/v1/discovery/status` | GET | Discovery status |
+| Discovery | `/api/v1/discovery/start` | POST | Start OPC UA browse |
+| Discovery | `/api/v1/discovery/nodes` | GET | Discovered nodes |
+| Mapping | `/api/v1/mapping` | GET/POST | List/create mappings |
+| Mapping | `/api/v1/mapping/{tag}` | GET/PUT/DELETE | CRUD mapping |
+| Mapping | `/api/v1/mapping/{tag}/candidates` | GET | Candidate IRDIs |
+| AAS | `/api/v1/aas/submodel` | GET | Submodel stats |
+| AAS | `/api/v1/aas/export/{fmt}` | POST | AAS export (json/xml/aasx) |
+| Swarm | `/api/v1/swarm/status` | GET | Swarm status |
+| Swarm | `/api/v1/swarm/consensus` | GET | Consensus records |
+| Federated | `/api/v1/federated/status` | GET | FL status |
+| Federated | `/api/v1/federated/start` | POST | Start FL rounds |
+
+Full schema at `/docs`.
+
+---
+
+## ML / Federated Learning
+
+Train a baseline CharCNN:
+```bash
+make train
+```
+
+Reproducibility:
+```bash
+make benchmark
+make reproduce
+```
+
+Key models:
+- CharCNN for tag strings
+- GNN for topology/context
+- Fusion with temperature scaling calibration
+- FedProx for non-IID federated learning
+
+---
+
+## AAS Export
+
+Generate AAS packages from consensus outputs:
+```bash
+poetry run python scripts/export_aas.py --format aasx
+```
+
+Formats supported: `json`, `xml`, `aasx`.
+
+---
+
+## Testing & Quality Gates
+
+```bash
+make lint
+make format
+make typecheck
+make test
+```
+
+CI runs: Ruff, Mypy, Pytest, coverage, packaging sanity, and Docker image build + smoke test.
+
+---
+
+## NOA Safety Defaults
+
+- **Read-only by default**: OPC UA browsing + reading only.
+- **Write-back** is intentionally out of scope unless explicitly configured.
+- Designed for a **second-channel** data path per NOA principles.
+
+---
+
+## Repository Map
+
+```
+semantic-swarm-intelligence/
+├── src/noa_swarm/
+│   ├── aas/          # AAS export (BaSyx SDK)
+│   ├── api/          # FastAPI application
+│   ├── common/       # Config, logging, schemas, IRDI utilities
+│   ├── connectors/   # OPC UA, MQTT, filesystem
+│   ├── dictionaries/ # IEC CDD, eCl@ss, seed providers
+│   ├── federated/    # Flower client/server, DP
+│   ├── ml/           # Datasets, models, training, serving
+│   ├── swarm/        # Agent, consensus, membership, reputation
+│   └── ui/           # Gradio dashboard
+├── docker/           # Dockerfiles + compose
+├── configs/          # YAML configs
+├── scripts/          # Tools & reproducibility
+└── tests/            # Unit + integration
+```
+
+---
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Run tests (`make check`)
-4. Commit changes (`git commit -m 'Add amazing feature'`)
-5. Push to branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
+```bash
+make check
+```
+
+Use Conventional Commits and open PRs with test evidence. Pre-commit includes a bidi-control guard to prevent hidden Unicode.
+
+---
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License — see [LICENSE](LICENSE).
 
-## Acknowledgments
+## Security
 
-- NAMUR Open Architecture (NOA) working group
-- IEC 61987 / PA-DIM standardization efforts
-- eCl@ss and IEC CDD dictionary providers
-- Eclipse BaSyx project
+Please review [SECURITY.md](SECURITY.md) for coordinated disclosure guidance.
+
+## Citation
+
+If you use this work in research, please cite the release tagged in GitHub Releases.

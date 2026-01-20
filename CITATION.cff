@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+title: NOA Semantic Swarm Mapper
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Hadi
+    family-names: Jannat
+    orcid: https://orcid.org/0000-0000-0000-0000
+repository-code: https://github.com/hadijannat/semantic-swarm-intelligence
+url: https://github.com/hadijannat/semantic-swarm-intelligence
+abstract: >-
+  A distributed system for automatically mapping brownfield
+  industrial tags to PA-DIM / IEC 61987 (IRDI) semantics
+  using swarm intelligence and federated learning. Built
+  following the NAMUR Open Architecture (NOA) principles.
+keywords:
+  - industrial automation
+  - semantic interoperability
+  - swarm intelligence
+  - federated learning
+  - OPC UA
+  - Asset Administration Shell
+  - IEC 61987
+  - PA-DIM
+  - NAMUR Open Architecture
+license: MIT
+version: 0.1.0
+date-released: '2024-01-20'

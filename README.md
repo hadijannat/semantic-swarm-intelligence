@@ -53,7 +53,7 @@ A distributed system for automatically mapping brownfield industrial tags to PA-
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/semantic-swarm-intelligence.git
+git clone https://github.com/hadijannat/semantic-swarm-intelligence.git
 cd semantic-swarm-intelligence
 
 # Install dependencies
@@ -90,7 +90,7 @@ make docker-down
 
 ```bash
 # Start the API server
-poetry run uvicorn noa_swarm.api.main:application --reload
+poetry run uvicorn noa_swarm.api.main:app --reload
 
 # In another terminal, start a semantic agent
 NOA_AGENT_ID=agent-001 \

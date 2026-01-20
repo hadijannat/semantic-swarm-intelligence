@@ -81,6 +81,21 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
+        contact={
+            "name": "NOA Semantic Swarm Mapper",
+            "url": "https://github.com/hadijannat/semantic-swarm-intelligence",
+        },
+        license_info={
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT",
+        },
+        openapi_tags=[
+            {"name": "discovery", "description": "OPC UA tag discovery and browsing"},
+            {"name": "mapping", "description": "Tag-to-IRDI mapping operations"},
+            {"name": "aas", "description": "Asset Administration Shell export"},
+            {"name": "swarm", "description": "Swarm coordination and consensus"},
+            {"name": "federated", "description": "Federated learning operations"},
+        ],
     )
 
     @application.on_event("startup")

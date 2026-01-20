@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from noa_swarm.common.logging import get_logger
 
@@ -30,7 +30,7 @@ logger = get_logger(__name__)
 
 def _utc_now() -> datetime:
     """Return the current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @dataclass(frozen=True)
@@ -348,7 +348,7 @@ class ReputationTracker:
         or data imports.
         """
         with self._lock:
-            for agent_id, reputation in self._reputations.items():
+            for _agent_id, reputation in self._reputations.items():
                 reputation.reliability_score = _compute_score(
                     reputation.outcomes,
                     self.config.decay_factor,
@@ -433,7 +433,7 @@ class ReputationTracker:
         total_pruned = 0
 
         with self._lock:
-            for agent_id, reputation in self._reputations.items():
+            for _agent_id, reputation in self._reputations.items():
                 original_count = len(reputation.outcomes)
                 reputation.outcomes = [
                     o for o in reputation.outcomes if o.timestamp >= cutoff

@@ -2,20 +2,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 
 from noa_swarm.dictionaries.base import (
-    DictionaryProvider,
     DictionaryConcept,
-    SearchResult,
+    DictionaryProvider,
     HierarchyNode,
+    SearchResult,
 )
 from noa_swarm.dictionaries.seed_provider import SeedDictionaryProvider
-
-if TYPE_CHECKING:
-    pass
 
 
 class TestSeedDictionaryProviderInit:

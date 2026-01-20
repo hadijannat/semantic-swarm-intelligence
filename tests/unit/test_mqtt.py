@@ -7,8 +7,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from paho.mqtt.enums import CallbackAPIVersion, MQTTErrorCode
-from paho.mqtt.reasoncodes import ReasonCode
+from paho.mqtt.enums import MQTTErrorCode
 
 from noa_swarm.connectors.mqtt import (
     MQTTClient,
@@ -155,7 +154,7 @@ class TestMQTTClientConnect:
         mock_paho.connect.return_value = MQTTErrorCode.MQTT_ERR_SUCCESS
 
         with patch("noa_swarm.connectors.mqtt.mqtt_client.Client", return_value=mock_paho):
-            with patch("asyncio.wait_for", side_effect=asyncio.TimeoutError()):
+            with patch("asyncio.wait_for", side_effect=TimeoutError()):
                 with pytest.raises(MQTTConnectionError, match="timeout"):
                     await client.connect()
 

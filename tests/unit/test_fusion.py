@@ -5,7 +5,6 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import torch
-import torch.nn.functional as F
 
 from noa_swarm.ml.models.fusion import (
     FusionConfig,

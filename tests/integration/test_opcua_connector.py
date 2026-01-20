@@ -7,14 +7,16 @@ without requiring a real OPC UA server.
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
+
+# Use a unique port for each test run to avoid conflicts
+import time as _time
+from pathlib import Path
 
 import pytest
 
 from noa_swarm.common.schemas import TagRecord
 from noa_swarm.connectors.opcua_asyncua import (
     OPCUABrowser,
-    OPCUABrowserError,
     OPCUAConnectionError,
     OPCUAWriteAttemptError,
     create_opcua_browser,
@@ -25,12 +27,6 @@ from noa_swarm.connectors.opcua_simulator import (
     create_test_simulator,
 )
 
-if TYPE_CHECKING:
-    pass
-
-
-# Use a unique port for each test run to avoid conflicts
-import time as _time
 TEST_PORT_BASE = 49000 + (int(_time.time()) % 1000)  # Randomize base to avoid conflicts
 
 # Counter for unique port allocation
@@ -434,8 +430,8 @@ class TestFilesystemConnectors:
 
     async def test_import_csv_round_trip(self, tmp_path: Path) -> None:
         """Test CSV import and export."""
-        from noa_swarm.connectors.filesystem import export_to_csv, import_from_csv
         from noa_swarm.common.schemas import TagRecord
+        from noa_swarm.connectors.filesystem import export_to_csv, import_from_csv
 
         csv_path = tmp_path / "tags.csv"
         tags = [
@@ -454,8 +450,8 @@ class TestFilesystemConnectors:
 
     async def test_import_json_round_trip(self, tmp_path: Path) -> None:
         """Test JSON import and export."""
-        from noa_swarm.connectors.filesystem import export_to_json, import_from_json
         from noa_swarm.common.schemas import TagRecord
+        from noa_swarm.connectors.filesystem import export_to_json, import_from_json
 
         json_path = tmp_path / "tags.json"
         tags = [

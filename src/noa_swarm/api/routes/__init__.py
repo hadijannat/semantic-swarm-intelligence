@@ -8,7 +8,7 @@ This package contains the route handlers for each API domain:
 - federated: Federated learning
 """
 
-from noa_swarm.api.routes import discovery, mapping, aas, swarm, federated
+from noa_swarm.api.routes import aas, discovery, federated, mapping, swarm
 
 __all__ = [
     "discovery",

@@ -7,14 +7,16 @@ monitoring consensus, and viewing agent reliability scores.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
 from noa_swarm.api.deps import get_swarm_service
 from noa_swarm.common.logging import get_logger
-from noa_swarm.services.swarm import SwarmService
+
+if TYPE_CHECKING:
+    from noa_swarm.services.swarm import SwarmService
 
 logger = get_logger(__name__)
 
@@ -238,7 +240,7 @@ async def get_consensus_votes(
 @router.post("/trigger")
 async def trigger_consensus(
     tag_names: list[str],
-    service: SwarmService = Depends(get_swarm_service),
+    _service: SwarmService = Depends(get_swarm_service),
 ) -> dict[str, Any]:
     """Trigger consensus for specific tags.
 

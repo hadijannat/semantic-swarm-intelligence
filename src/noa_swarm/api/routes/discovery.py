@@ -6,14 +6,16 @@ OPC UA tags from connected servers.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from noa_swarm.api.deps import get_discovery_service
 from noa_swarm.common.logging import get_logger
-from noa_swarm.services.discovery import DiscoveryService
+
+if TYPE_CHECKING:
+    from noa_swarm.services.discovery import DiscoveryService
 
 logger = get_logger(__name__)
 

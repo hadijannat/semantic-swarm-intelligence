@@ -338,6 +338,8 @@ class MQTTClient:
 
             # Wait for subscription acknowledgment
             if self._loop:
+                if mid is None:
+                    raise MQTTSubscribeError(f"Subscribe did not return message id for {topic}")
                 future: asyncio.Future[None] = self._loop.create_future()
                 self._pending_subscribes[mid] = future
 
@@ -375,6 +377,9 @@ class MQTTClient:
 
             # Wait for unsubscribe acknowledgment
             if self._loop:
+                if mid is None:
+                    logger.warning(f"Unsubscribe did not return message id for {topic}")
+                    return
                 future: asyncio.Future[None] = self._loop.create_future()
                 self._pending_unsubscribes[mid] = future
 

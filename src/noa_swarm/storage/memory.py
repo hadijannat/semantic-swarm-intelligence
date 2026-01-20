@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import asyncio
 import re
-from datetime import datetime, timezone
 
 from noa_swarm.common.schemas import ConsensusRecord, TagMappingRecord, TagRecord, utc_now
 from noa_swarm.storage.base import ConsensusRepository, MappingRepository, TagRepository

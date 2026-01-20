@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import fields
-from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -11,13 +10,10 @@ import pytest
 
 from noa_swarm.federated.strategies import (
     DPConfig,
-    clip_gradients,
-    add_gaussian_noise,
     DPFedProxStrategy,
+    add_gaussian_noise,
+    clip_gradients,
 )
-
-if TYPE_CHECKING:
-    pass
 
 
 class TestDPConfig:
@@ -249,9 +245,9 @@ class TestDPFedProxStrategy:
     ) -> None:
         """Test aggregate_fit applies DP when enabled."""
         from flwr.common import (
+            Code,
             FitRes,
             Status,
-            Code,
             ndarrays_to_parameters,
         )
         from flwr.server.client_proxy import ClientProxy
@@ -287,9 +283,9 @@ class TestDPFedProxStrategy:
         )
 
         from flwr.common import (
+            Code,
             FitRes,
             Status,
-            Code,
             ndarrays_to_parameters,
         )
         from flwr.server.client_proxy import ClientProxy

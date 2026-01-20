@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import threading
-import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -173,7 +172,7 @@ class TestAgentOutcome:
 
     def test_custom_timestamp(self) -> None:
         """Test creating outcome with custom timestamp."""
-        custom_time = datetime(2024, 6, 15, 12, 0, 0, tzinfo=timezone.utc)
+        custom_time = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
         outcome = AgentOutcome(
             agent_id="agent-001",
             tag_id="tag-123",
@@ -687,8 +686,8 @@ class TestReputationTrackerPruneOldOutcomes:
         tracker = ReputationTracker()
 
         # Add outcomes with old timestamps
-        old_time = datetime.now(timezone.utc) - timedelta(hours=200)
-        new_time = datetime.now(timezone.utc)
+        old_time = datetime.now(UTC) - timedelta(hours=200)
+        new_time = datetime.now(UTC)
 
         reputation = tracker.record_outcome("agent-001", "tag-1", "irdi-a", "irdi-a")
 
@@ -738,7 +737,7 @@ class TestReputationTrackerPruneOldOutcomes:
         reputation = tracker.record_outcome("agent-001", "tag-1", "irdi-a", "irdi-a")
 
         # Add an old wrong outcome
-        old_time = datetime.now(timezone.utc) - timedelta(hours=200)
+        old_time = datetime.now(UTC) - timedelta(hours=200)
         old_outcome = AgentOutcome(
             agent_id="agent-001",
             tag_id="tag-0",

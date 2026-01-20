@@ -13,12 +13,10 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Self
 
 from asyncua import Server, ua
-from asyncua.common.node import Node
 from loguru import logger
 
 if TYPE_CHECKING:
-    pass
-
+    from asyncua.common.node import Node
 
 # ISA-95 Tag Type Definitions
 @dataclass
@@ -476,7 +474,7 @@ class OPCUASimulator:
                     # Randomly flip boolean with 10% probability
                     if random.random() < 0.1:
                         await node.write_value(not current_value)
-                elif isinstance(current_value, (int, float)):
+                elif isinstance(current_value, int | float):
                     # Add small random variation
                     variation = current_value * random.uniform(-0.05, 0.05)
                     new_value = current_value + variation

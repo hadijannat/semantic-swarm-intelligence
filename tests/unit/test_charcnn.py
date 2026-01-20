@@ -2,26 +2,27 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 import torch
-import numpy as np
 
+from noa_swarm.ml.datasets import SyntheticTagGenerator
 from noa_swarm.ml.models.charcnn import (
+    DEFAULT_ALPHABET,
+    PROPERTY_CLASSES,
+    SIGNAL_ROLES,
     CharacterTokenizer,
     CharCNN,
     CharCNNConfig,
-    PROPERTY_CLASSES,
-    SIGNAL_ROLES,
-    DEFAULT_ALPHABET,
     create_label_mappings,
     get_property_class_from_category,
     get_signal_role_from_prefix,
 )
 from noa_swarm.ml.training.eval import (
     compute_accuracy,
-    compute_per_class_accuracy,
-    compute_macro_f1,
     compute_confusion_matrix,
+    compute_macro_f1,
+    compute_per_class_accuracy,
     compute_top_k_accuracy,
 )
 from noa_swarm.ml.training.train_local import (
@@ -30,7 +31,6 @@ from noa_swarm.ml.training.train_local import (
     TrainingHistory,
     train_model,
 )
-from noa_swarm.ml.datasets import SyntheticTagGenerator
 
 
 class TestCharacterTokenizer:

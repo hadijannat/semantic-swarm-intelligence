@@ -20,18 +20,13 @@ Example usage:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from noa_swarm.common.logging import get_logger
 from noa_swarm.dictionaries.base import (
-    DictionaryProvider,
     DictionaryConcept,
+    DictionaryProvider,
     HierarchyNode,
     SearchResult,
 )
-
-if TYPE_CHECKING:
-    pass
 
 logger = get_logger(__name__)
 

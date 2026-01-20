@@ -6,14 +6,18 @@ including creation, retrieval, and approval workflows.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime  # noqa: TCH003
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from noa_swarm.api.deps import get_mapping_service
 from noa_swarm.common.logging import get_logger
-from noa_swarm.services.mapping import MappingService
+from noa_swarm.common.schemas import MappingStatus  # noqa: TCH001
+
+if TYPE_CHECKING:
+    from noa_swarm.services.mapping import MappingService
 
 logger = get_logger(__name__)
 
@@ -63,12 +67,12 @@ class MappingUpdateRequest(BaseModel):
     """Request model for updating a mapping."""
 
     irdi: str | None = None
-    status: str | None = None
+    status: MappingStatus | None = None
 
 
 @router.get("/", response_model=MappingListResponse)
 async def list_mappings(
-    status: str | None = Query(None, description="Filter by status"),
+    status: MappingStatus | None = Query(None, description="Filter by status"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum mappings to return"),
     service: MappingService = Depends(get_mapping_service),

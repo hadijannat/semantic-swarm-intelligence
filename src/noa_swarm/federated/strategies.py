@@ -31,7 +31,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 import numpy as np
 from flwr.common import (
@@ -51,6 +51,8 @@ if TYPE_CHECKING:
     from flwr.server.client_proxy import ClientProxy
 
 logger = get_logger(__name__)
+
+NDArray: TypeAlias = np.ndarray[Any, np.dtype[Any]]
 
 
 @dataclass
@@ -90,9 +92,9 @@ class DPConfig:
 
 
 def clip_gradients(
-    gradients: Sequence[np.ndarray],
+    gradients: Sequence[NDArray],
     max_norm: float,
-) -> list[np.ndarray]:
+) -> list[NDArray]:
     """Clip gradients to have maximum L2 norm.
 
     This implements per-layer gradient clipping. Each gradient array is
@@ -110,7 +112,7 @@ def clip_gradients(
         >>> clipped = clip_gradients(grads, max_norm=1.0)
         >>> np.linalg.norm(clipped[0])  # Should be 1.0
     """
-    clipped: list[np.ndarray] = []
+    clipped: list[NDArray] = []
 
     for grad in gradients:
         grad_norm = np.linalg.norm(grad)
@@ -126,16 +128,16 @@ def clip_gradients(
 
 
 def add_gaussian_noise(
-    parameters: Sequence[np.ndarray],
+    parameters: Sequence[NDArray],
     noise_multiplier: float,
     max_norm: float,
     num_clients: int,
-) -> list[np.ndarray]:
+) -> list[NDArray]:
     """Add calibrated Gaussian noise to parameters for differential privacy.
 
     The noise is calibrated based on the sensitivity (max_grad_norm) and
     the noise multiplier. The standard deviation of noise is:
-        σ = (noise_multiplier * max_norm) / num_clients
+        sigma = (noise_multiplier * max_norm) / num_clients
 
     Args:
         parameters: List of parameter arrays to add noise to.
@@ -149,11 +151,11 @@ def add_gaussian_noise(
     if noise_multiplier == 0:
         return [p.copy() for p in parameters]
 
-    # Noise standard deviation: σ = (σ_multiplier * C) / num_clients
+    # Noise standard deviation: sigma = (sigma_multiplier * C) / num_clients
     # where C is the clipping bound (max_norm)
     noise_std = (noise_multiplier * max_norm) / num_clients
 
-    noisy: list[np.ndarray] = []
+    noisy: list[NDArray] = []
     for param in parameters:
         noise = np.random.normal(0, noise_std, param.shape)
         noisy.append(param + noise)
@@ -182,7 +184,7 @@ def _compute_epsilon(
     if noise_multiplier <= 0 or num_rounds == 0:
         return 0.0
 
-    # Simple Gaussian mechanism: ε = sqrt(2 * ln(1.25/δ)) / σ
+    # Simple Gaussian mechanism: epsilon = sqrt(2 * ln(1.25/delta)) / sigma
     # With basic composition: ε_total = sqrt(T) * ε_single
     single_round_epsilon = math.sqrt(2 * math.log(1.25 / delta)) / noise_multiplier
     total_epsilon = math.sqrt(num_rounds) * single_round_epsilon

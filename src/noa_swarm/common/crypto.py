@@ -11,10 +11,10 @@ secure inter-agent communication is implemented.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pathlib import Path
     from ssl import SSLContext
 
 
@@ -73,6 +73,7 @@ def load_certificate_info(cert_path: Path) -> CertificateInfo:
     Note:
         This is a stub implementation. Full implementation coming later.
     """
+    _ = cert_path
     raise NotImplementedError(
         "Certificate loading not yet implemented. "
         "This is a stub for future mTLS support."
@@ -84,7 +85,7 @@ def create_mtls_context(
     key_path: Path,
     ca_path: Path | None = None,
     verify_peer: bool = True,
-) -> "SSLContext":
+) -> SSLContext:
     """Create an SSL context configured for mutual TLS.
 
     Args:
@@ -103,6 +104,10 @@ def create_mtls_context(
     Note:
         This is a stub implementation. Full implementation coming later.
     """
+    _ = cert_path
+    _ = key_path
+    _ = ca_path
+    _ = verify_peer
     raise NotImplementedError(
         "mTLS context creation not yet implemented. "
         "This is a stub for future mTLS support."
@@ -129,6 +134,8 @@ def verify_certificate_chain(
     Note:
         This is a stub implementation. Full implementation coming later.
     """
+    _ = cert_path
+    _ = ca_path
     raise NotImplementedError(
         "Certificate chain verification not yet implemented. "
         "This is a stub for future mTLS support."
@@ -157,6 +164,9 @@ def generate_self_signed_cert(
         This is a stub implementation. Full implementation coming later.
         Self-signed certificates should only be used for development.
     """
+    _ = common_name
+    _ = output_dir
+    _ = validity_days
     raise NotImplementedError(
         "Self-signed certificate generation not yet implemented. "
         "This is a stub for future mTLS support."

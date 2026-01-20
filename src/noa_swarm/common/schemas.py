@@ -10,7 +10,7 @@ This module defines the fundamental data structures used throughout the system:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -20,7 +20,7 @@ from noa_swarm.common.ids import IRDI
 
 def utc_now() -> datetime:
     """Return the current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class TagRecord(BaseModel):

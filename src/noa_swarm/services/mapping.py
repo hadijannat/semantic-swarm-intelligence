@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from noa_swarm.common.logging import get_logger
-from noa_swarm.common.schemas import MappingStatus, TagMappingRecord, TagRecord, utc_now
-from noa_swarm.dictionaries import ProviderRegistry
-from noa_swarm.storage.base import MappingRepository, TagRepository
+from noa_swarm.common.schemas import MappingStatus, TagMappingRecord, utc_now
+
+if TYPE_CHECKING:
+    from noa_swarm.dictionaries import ProviderRegistry
+    from noa_swarm.storage.base import MappingRepository, TagRepository
 
 logger = get_logger(__name__)
 

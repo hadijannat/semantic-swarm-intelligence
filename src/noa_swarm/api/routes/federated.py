@@ -6,15 +6,17 @@ operations including training rounds and model synchronization.
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
+from datetime import datetime  # noqa: TCH003
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
 from noa_swarm.api.deps import get_federated_service
 from noa_swarm.common.logging import get_logger
-from noa_swarm.services.federated import FederatedService
+
+if TYPE_CHECKING:
+    from noa_swarm.services.federated import FederatedService
 
 logger = get_logger(__name__)
 
@@ -192,7 +194,7 @@ async def get_round(round_number: int) -> RoundInfo:
 
 @router.get("/clients", response_model=list[ClientInfo])
 async def list_clients(
-    service: FederatedService = Depends(get_federated_service),
+    _service: FederatedService = Depends(get_federated_service),
 ) -> list[ClientInfo]:
     """List federated learning clients.
 

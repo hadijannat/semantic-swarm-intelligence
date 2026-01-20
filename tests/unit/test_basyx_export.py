@@ -5,26 +5,22 @@ from __future__ import annotations
 import json
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING
 from zipfile import ZipFile
 
 import pytest
 
-from noa_swarm.aas.submodels import (
-    TagMappingSubmodel,
-    DiscoveredTag,
-    MappingStatus,
-    ConsensusInfo,
-)
 from noa_swarm.aas.basyx_export import (
     AASExporter,
     ExportConfig,
     ExportFormat,
     create_tag_mapping_aas,
 )
-
-if TYPE_CHECKING:
-    pass
+from noa_swarm.aas.submodels import (
+    ConsensusInfo,
+    DiscoveredTag,
+    MappingStatus,
+    TagMappingSubmodel,
+)
 
 
 class TestExportConfig:

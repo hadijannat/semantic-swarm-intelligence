@@ -2,15 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 from fastapi.testclient import TestClient
 
 from noa_swarm.api.main import app, get_api_info
-
-if TYPE_CHECKING:
-    pass
 
 
 @pytest.fixture

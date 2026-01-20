@@ -14,19 +14,19 @@ from noa_swarm.ml.datasets import (
     TagSample,
     TEPDataset,
 )
-from noa_swarm.ml.models import CharCNN, CharacterTokenizer
-from noa_swarm.ml.training import (
-    compute_accuracy,
-    compute_confusion_matrix,
-    compute_macro_f1,
-    compute_top_k_accuracy,
-)
+from noa_swarm.ml.models import CharacterTokenizer, CharCNN
 from noa_swarm.ml.serving import (
     FusionInferenceConfig,
     FusionInferenceEngine,
     InferenceConfig,
     RuleBasedInferenceEngine,
     build_fusion_engine_from_env,
+)
+from noa_swarm.ml.training import (
+    compute_accuracy,
+    compute_confusion_matrix,
+    compute_macro_f1,
+    compute_top_k_accuracy,
 )
 
 __all__ = [

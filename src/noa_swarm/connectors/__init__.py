@@ -21,9 +21,9 @@ from noa_swarm.connectors.mqtt import (
     MQTTSubscribeError,
 )
 from noa_swarm.connectors.opcua_asyncua import (
+    OPCUABrowseError,
     OPCUABrowser,
     OPCUABrowserError,
-    OPCUABrowseError,
     OPCUAConnectionError,
     OPCUAWriteAttemptError,
 )

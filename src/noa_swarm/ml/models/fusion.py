@@ -10,7 +10,7 @@ where votes are weighted by confidence.
 
 Architecture:
     CharCNN logits + GNN logits (optional)
-    -> Late Fusion (learnable weights α, β)
+    -> Late Fusion (learnable weights alpha, beta)
     -> Temperature Scaling (calibration)
     -> Calibrated probabilities
     -> Top-K IRDI retrieval via embedding similarity
@@ -19,7 +19,7 @@ Architecture:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
 import torch
 import torch.nn as nn
@@ -27,6 +27,20 @@ import torch.nn.functional as F
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+
+class FusionOutput(TypedDict):
+    """Typed output for fusion forward pass."""
+
+    property_class: torch.Tensor
+    signal_role: torch.Tensor
+    fused_embedding: torch.Tensor
+    property_probs: torch.Tensor
+    signal_probs: torch.Tensor
+    fusion_weights: dict[str, torch.Tensor]
+    temperatures: dict[str, torch.Tensor]
+    property_class_uncalibrated: NotRequired[torch.Tensor]
+    signal_role_uncalibrated: NotRequired[torch.Tensor]
 
 
 @dataclass
@@ -193,7 +207,7 @@ class FusionModel(nn.Module):
         charcnn_output: dict[str, torch.Tensor],
         gnn_output: dict[str, torch.Tensor] | None = None,
         return_uncalibrated: bool = False,
-    ) -> dict[str, torch.Tensor]:
+    ) -> FusionOutput:
         """Forward pass through the fusion model.
 
         Args:
@@ -271,7 +285,7 @@ class FusionModel(nn.Module):
         property_probs = F.softmax(calibrated_property, dim=-1)
         signal_probs = F.softmax(calibrated_signal, dim=-1)
 
-        result = {
+        result: FusionOutput = {
             "property_class": calibrated_property,
             "signal_role": calibrated_signal,
             "fused_embedding": fused_embed,

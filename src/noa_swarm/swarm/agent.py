@@ -15,20 +15,20 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from dataclasses import dataclass, field
 import inspect
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any, Self, cast
 
 from loguru import logger
+
+from noa_swarm.common.schemas import Hypothesis
 
 if TYPE_CHECKING:
     from noa_swarm.common.schemas import (
         ConsensusRecord,
-        Hypothesis,
         TagRecord,
-        Vote,
     )
     from noa_swarm.connectors.mqtt import MQTTClient
     from noa_swarm.connectors.opcua_asyncua import OPCUABrowser
@@ -59,7 +59,7 @@ class AgentState(Enum):
 
 def _utc_now() -> datetime:
     """Return the current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @dataclass
@@ -316,7 +316,7 @@ class SemanticAgent:
                         self._lifecycle_task,
                         timeout=self._config.shutdown_timeout_seconds,
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     logger.warning(
                         f"Lifecycle task did not complete within timeout for {self.agent_id}"
                     )
@@ -390,6 +390,7 @@ class SemanticAgent:
             # Run inference (sync or async)
             result = self._inference_engine.infer(tags)
             hypotheses = await result if inspect.isawaitable(result) else result
+            hypotheses = cast(list[Hypothesis], hypotheses)
 
             # Update metrics
             self._metrics.hypotheses_generated = len(hypotheses)
@@ -704,7 +705,6 @@ def _resolve_env(name: str, default: str | None = None) -> str | None:
 
 async def _run_agent_from_env() -> None:
     """Run an agent using environment variables for configuration."""
-    import os
     import signal
 
     agent_id = _resolve_env("NOA_AGENT_ID") or "agent-001"

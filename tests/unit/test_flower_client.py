@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import copy
 from dataclasses import fields
-from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
@@ -15,9 +14,6 @@ from noa_swarm.federated.flower_client import (
     FedProxClient,
     FedProxConfig,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Iterator
 
 
 # Simple test model for unit tests

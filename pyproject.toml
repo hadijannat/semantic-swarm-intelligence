@@ -82,6 +82,20 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["noa_swarm"]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "ARG001",
+    "ARG002",
+    "ARG005",
+    "B007",
+    "B017",
+    "F841",
+    "RUF005",
+    "SIM117",
+    "TCH003",
+    "UP038",
+]
+
 [tool.mypy]
 python_version = "3.11"
 strict = true
@@ -107,6 +121,8 @@ module = [
     "flwr.*",
     "basyx.*",
     "gradio.*",
+    "matplotlib.*",
+    "scipy.*",
 ]
 ignore_missing_imports = true
 

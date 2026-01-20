@@ -11,23 +11,24 @@ This module provides a web-based dashboard for:
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import httpx
 
 # Compatibility shim for older gradio expectations when huggingface_hub removes HfFolder.
 try:
-    import huggingface_hub  # type: ignore
+    import huggingface_hub
 
-    if not hasattr(huggingface_hub, "HfFolder"):
-        class HfFolder:  # type: ignore[dead-code]
+    module = cast(Any, huggingface_hub)
+    if not hasattr(module, "HfFolder"):
+        class HfFolder:
             """Fallback HfFolder stub for gradio imports."""
 
             @staticmethod
             def get_token() -> str | None:  # pragma: no cover - compatibility shim
                 return None
 
-        huggingface_hub.HfFolder = HfFolder  # type: ignore[attr-defined]
+        module.HfFolder = HfFolder
 except Exception:
     # If huggingface_hub is unavailable, gradio will handle import errors later.
     pass
@@ -53,7 +54,7 @@ class APIClient:
         """
         self.base_url = base_url.rstrip("/")
 
-    async def fetch(self, endpoint: str) -> dict[str, Any]:
+    async def fetch(self, endpoint: str) -> dict[str, Any] | list[dict[str, Any]]:
         """Fetch data from an API endpoint.
 
         Args:
@@ -70,9 +71,11 @@ class APIClient:
             response = await client.get(url)
             if response.status_code != 200:
                 raise Exception(f"API error: {response.status_code} - {response.text}")
-            return response.json()
+            return cast(dict[str, Any] | list[dict[str, Any]], response.json())
 
-    async def post(self, endpoint: str, data: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def post(
+        self, endpoint: str, data: dict[str, Any] | None = None
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Post data to an API endpoint.
 
         Args:
@@ -90,7 +93,7 @@ class APIClient:
             response = await client.post(url, json=data)
             if response.status_code not in (200, 201):
                 raise Exception(f"API error: {response.status_code} - {response.text}")
-            return response.json()
+            return cast(dict[str, Any] | list[dict[str, Any]], response.json())
 
 
 # =============================================================================
@@ -341,8 +344,15 @@ def create_dashboard(api_url: str = DEFAULT_API_URL) -> gr.Blocks:
                 async def refresh_dashboard() -> tuple[str, str]:
                     try:
                         # Fetch metrics from API
-                        mapping_data = await client.fetch("/api/v1/mapping/")
-                        discovery_data = await client.fetch("/api/v1/discovery/status")
+                        mapping_payload = await client.fetch("/api/v1/mapping/")
+                        discovery_payload = await client.fetch("/api/v1/discovery/status")
+
+                        mapping_data = (
+                            mapping_payload if isinstance(mapping_payload, dict) else {}
+                        )
+                        discovery_data = (
+                            discovery_payload if isinstance(discovery_payload, dict) else {}
+                        )
 
                         metrics = {
                             "total_tags": mapping_data.get("total", 0),
@@ -404,8 +414,14 @@ def create_dashboard(api_url: str = DEFAULT_API_URL) -> gr.Blocks:
                         if status != "all":
                             endpoint += f"?status={status}"
 
-                        data = await client.fetch(endpoint)
-                        tags = data.get("mappings", [])
+                        payload = await client.fetch(endpoint)
+                        data = payload if isinstance(payload, dict) else {}
+                        raw_tags = data.get("mappings", [])
+                        tags = (
+                            [item for item in raw_tags if isinstance(item, dict)]
+                            if isinstance(raw_tags, list)
+                            else []
+                        )
 
                         # Filter by query if provided
                         if query:
@@ -458,7 +474,18 @@ def create_dashboard(api_url: str = DEFAULT_API_URL) -> gr.Blocks:
                         return []
                     try:
                         data = await client.fetch(f"/api/v1/mapping/{tag_name}/candidates")
-                        return format_candidates(data)
+                        candidates: list[dict[str, Any]]
+                        if isinstance(data, list):
+                            candidates = [item for item in data if isinstance(item, dict)]
+                        elif isinstance(data, dict):
+                            raw = data.get("candidates")
+                            if isinstance(raw, list):
+                                candidates = [item for item in raw if isinstance(item, dict)]
+                            else:
+                                candidates = []
+                        else:
+                            candidates = []
+                        return format_candidates(candidates)
                     except Exception as e:
                         logger.error("Failed to load candidates", error=str(e))
                         return []
@@ -466,6 +493,7 @@ def create_dashboard(api_url: str = DEFAULT_API_URL) -> gr.Blocks:
                 async def approve_mapping(tag_name: str, irdi: str) -> str:
                     if not tag_name:
                         return "❌ Please enter a tag name"
+                    _ = irdi
                     try:
                         await client.post(f"/api/v1/mapping/{tag_name}/approve")
                         return f"✅ Mapping approved for {tag_name}"
@@ -528,9 +556,21 @@ def create_dashboard(api_url: str = DEFAULT_API_URL) -> gr.Blocks:
 
                 async def refresh_swarm() -> tuple[str, list[list[Any]], list[list[Any]]]:
                     try:
-                        status = await client.fetch("/api/v1/swarm/status")
-                        agents = await client.fetch("/api/v1/swarm/agents")
-                        consensus = await client.fetch("/api/v1/swarm/consensus")
+                        status_payload = await client.fetch("/api/v1/swarm/status")
+                        agents_payload = await client.fetch("/api/v1/swarm/agents")
+                        consensus_payload = await client.fetch("/api/v1/swarm/consensus")
+
+                        status = status_payload if isinstance(status_payload, dict) else {}
+                        agents = (
+                            [item for item in agents_payload if isinstance(item, dict)]
+                            if isinstance(agents_payload, list)
+                            else []
+                        )
+                        consensus = (
+                            [item for item in consensus_payload if isinstance(item, dict)]
+                            if isinstance(consensus_payload, list)
+                            else []
+                        )
 
                         status_md = f"""## Swarm Status
 
@@ -676,8 +716,15 @@ def create_dashboard(api_url: str = DEFAULT_API_URL) -> gr.Blocks:
 
                 async def refresh_fl_status() -> tuple[str, list[list[Any]]]:
                     try:
-                        status = await client.fetch("/api/v1/federated/status")
-                        clients = await client.fetch("/api/v1/federated/clients")
+                        status_payload = await client.fetch("/api/v1/federated/status")
+                        clients_payload = await client.fetch("/api/v1/federated/clients")
+
+                        status = status_payload if isinstance(status_payload, dict) else {}
+                        clients = (
+                            [item for item in clients_payload if isinstance(item, dict)]
+                            if isinstance(clients_payload, list)
+                            else []
+                        )
 
                         clients_data = [
                             [
@@ -705,14 +752,16 @@ def create_dashboard(api_url: str = DEFAULT_API_URL) -> gr.Blocks:
                             "min_clients": int(clients_min),
                             "dp_enabled": dp,
                         }
-                        result = await client.post("/api/v1/federated/start", config)
+                        payload = await client.post("/api/v1/federated/start", config)
+                        result = payload if isinstance(payload, dict) else {}
                         return f"✅ {result.get('message', 'Training started')}"
                     except Exception as e:
                         return f"❌ Failed to start: {e}"
 
                 async def stop_training_handler() -> str:
                     try:
-                        result = await client.post("/api/v1/federated/stop")
+                        payload = await client.post("/api/v1/federated/stop")
+                        result = payload if isinstance(payload, dict) else {}
                         return f"✅ {result.get('message', 'Training stopped')}"
                     except Exception as e:
                         return f"❌ Failed to stop: {e}"

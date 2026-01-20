@@ -21,9 +21,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
+from noa_swarm.api.routes import aas, discovery, federated, mapping, swarm
 from noa_swarm.common.logging import get_logger
 from noa_swarm.observability import generate_metrics_output
-from noa_swarm.api.routes import discovery, mapping, aas, swarm, federated
 from noa_swarm.services.state import get_state
 
 logger = get_logger(__name__)

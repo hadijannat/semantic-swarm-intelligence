@@ -6,18 +6,21 @@ Asset Administration Shell packages.
 
 from __future__ import annotations
 
+import json
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
+from noa_swarm.aas import AASExporter, ExportConfig, ExportFormat, create_tag_mapping_aas
 from noa_swarm.api.deps import get_aas_service
 from noa_swarm.common.logging import get_logger
-from noa_swarm.services.aas import AASService
-from noa_swarm.aas import AASExporter, ExportConfig, ExportFormat, create_tag_mapping_aas
+
+if TYPE_CHECKING:
+    from noa_swarm.services.aas import AASService
 
 logger = get_logger(__name__)
 
@@ -97,8 +100,7 @@ async def get_submodel_json(
     exporter = AASExporter(ExportConfig(pretty_print=True))
     json_str = exporter.export_json(aas, sm)
 
-    import json
-    return json.loads(json_str)
+    return cast(dict[str, Any], json.loads(json_str))
 
 
 @router.post("/export/json")

@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import fields
-from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
@@ -14,9 +13,6 @@ from noa_swarm.federated.flower_server import (
     FedProxStrategy,
     create_fedprox_server,
 )
-
-if TYPE_CHECKING:
-    pass
 
 
 class TestFedProxServerConfig:
@@ -124,12 +120,12 @@ class TestFedProxStrategy:
     def test_has_aggregate_fit_method(self, strategy: FedProxStrategy) -> None:
         """Test FedProxStrategy has aggregate_fit method."""
         assert hasattr(strategy, "aggregate_fit")
-        assert callable(getattr(strategy, "aggregate_fit"))
+        assert callable(strategy.aggregate_fit)
 
     def test_has_aggregate_evaluate_method(self, strategy: FedProxStrategy) -> None:
         """Test FedProxStrategy has aggregate_evaluate method."""
         assert hasattr(strategy, "aggregate_evaluate")
-        assert callable(getattr(strategy, "aggregate_evaluate"))
+        assert callable(strategy.aggregate_evaluate)
 
     def test_current_round_starts_at_zero(self, strategy: FedProxStrategy) -> None:
         """Test current_round tracking starts at 0."""
@@ -160,10 +156,9 @@ class TestFedProxAggregation:
         # Client 2: params = [3.0, 4.0], num_examples = 30
         # Expected: weighted_avg = (10*[1,2] + 30*[3,4]) / 40 = [2.5, 3.5]
         from flwr.common import (
-            FitRes,
-            Parameters,
-            Status,
             Code,
+            FitRes,
+            Status,
             ndarrays_to_parameters,
         )
         from flwr.server.client_proxy import ClientProxy
@@ -209,9 +204,9 @@ class TestFedProxAggregation:
     def test_aggregate_fit_increments_round(self, strategy: FedProxStrategy) -> None:
         """Test that aggregate_fit increments current_round."""
         from flwr.common import (
+            Code,
             FitRes,
             Status,
-            Code,
             ndarrays_to_parameters,
         )
         from flwr.server.client_proxy import ClientProxy
@@ -238,9 +233,9 @@ class TestFedProxAggregation:
     ) -> None:
         """Test that aggregate_fit increments model_version."""
         from flwr.common import (
+            Code,
             FitRes,
             Status,
-            Code,
             ndarrays_to_parameters,
         )
         from flwr.server.client_proxy import ClientProxy
@@ -278,9 +273,9 @@ class TestFedProxAggregation:
     ) -> None:
         """Test that aggregate_evaluate computes weighted loss correctly."""
         from flwr.common import (
+            Code,
             EvaluateRes,
             Status,
-            Code,
         )
         from flwr.server.client_proxy import ClientProxy
 

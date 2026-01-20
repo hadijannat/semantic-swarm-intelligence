@@ -16,8 +16,8 @@ Key components:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import torch
@@ -143,11 +143,11 @@ class TemperatureScaler(nn.Module):
             optimizer.zero_grad()
             scaled_logits = self.forward(logits)
             loss = F.cross_entropy(scaled_logits, labels)
-            loss.backward(retain_graph=True)
+            loss.backward(retain_graph=True)  # type: ignore[no-untyped-call]
             return loss
 
         # Note: LBFGS.step() expects Callable[[], Tensor] but mypy infers stricter type
-        optimizer.step(closure)  # type: ignore[arg-type]
+        optimizer.step(closure)  # type: ignore[no-untyped-call]
 
         # Compute metrics after calibration
         with torch.no_grad():
@@ -181,8 +181,8 @@ class TemperatureScaler(nn.Module):
 
 
 def compute_ece(
-    probs: torch.Tensor | np.ndarray,
-    labels: torch.Tensor | np.ndarray,
+    probs: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
+    labels: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
     n_bins: int = 15,
 ) -> float:
     """Compute Expected Calibration Error (ECE).
@@ -244,8 +244,8 @@ def compute_ece(
 
 
 def compute_brier_score(
-    probs: torch.Tensor | np.ndarray,
-    labels: torch.Tensor | np.ndarray,
+    probs: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
+    labels: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
 ) -> float:
     """Compute Brier score for probabilistic predictions.
 
@@ -305,8 +305,8 @@ class ReliabilityDiagramData:
 
 
 def compute_reliability_diagram(
-    probs: torch.Tensor | np.ndarray,
-    labels: torch.Tensor | np.ndarray,
+    probs: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
+    labels: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
     n_bins: int = 15,
 ) -> ReliabilityDiagramData:
     """Compute data for a reliability diagram.
@@ -376,7 +376,7 @@ def compute_reliability_diagram(
 
 def calibrate_model(
     model: nn.Module,
-    val_dataloader: DataLoader,
+    val_dataloader: DataLoader[Any],
     device: torch.device | str = "cpu",
     forward_fn: Callable[[nn.Module, torch.Tensor], torch.Tensor] | None = None,
     max_iter: int = 50,
@@ -416,9 +416,9 @@ def calibrate_model(
     with torch.no_grad():
         for batch in val_dataloader:
             # Handle different batch formats
-            if isinstance(batch, (tuple, list)):
+            if isinstance(batch, tuple | list):
                 inputs = batch[0].to(device)
-                labels = batch[1].to(device)
+                labels: torch.Tensor | None = batch[1].to(device)
             else:
                 inputs = batch.to(device)
                 labels = None
@@ -430,9 +430,12 @@ def calibrate_model(
                 output = model(inputs)
                 if isinstance(output, dict):
                     # Assume 'property_class' is the main output
-                    logits = output.get("property_class", output.get("logits", output))
+                    logits_value = output.get("property_class") or output.get("logits")
+                    if logits_value is None:
+                        raise ValueError("Model output dict is missing logits")
+                    logits = cast(torch.Tensor, logits_value)
                 else:
-                    logits = output
+                    logits = cast(torch.Tensor, output)
 
             all_logits.append(logits.cpu())
             if labels is not None:
@@ -458,7 +461,7 @@ def calibrate_model(
 
 def calibrate_fusion_model(
     fusion_model: FusionModel,
-    val_dataloader: DataLoader,
+    val_dataloader: DataLoader[Any],
     device: torch.device | str = "cpu",
     calibrate_property: bool = True,
     calibrate_signal: bool = True,
@@ -543,8 +546,8 @@ def calibrate_fusion_model(
 
 
 def compute_calibration_metrics(
-    probs: torch.Tensor | np.ndarray,
-    labels: torch.Tensor | np.ndarray,
+    probs: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
+    labels: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
     n_bins: int = 15,
 ) -> dict[str, float]:
     """Compute multiple calibration metrics at once.
@@ -585,8 +588,8 @@ def compute_calibration_metrics(
 
 
 def plot_reliability_diagram(
-    probs: torch.Tensor | np.ndarray,
-    labels: torch.Tensor | np.ndarray,
+    probs: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
+    labels: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
     n_bins: int = 15,
     title: str = "Reliability Diagram",
     save_path: str | None = None,

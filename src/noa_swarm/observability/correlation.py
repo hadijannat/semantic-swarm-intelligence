@@ -9,7 +9,10 @@ from __future__ import annotations
 import uuid
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Iterator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 # Context variable for storing correlation ID
 _correlation_id: ContextVar[str | None] = ContextVar("correlation_id", default=None)

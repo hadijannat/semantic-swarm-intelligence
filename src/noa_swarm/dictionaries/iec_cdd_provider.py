@@ -28,20 +28,17 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import httpx
 
 from noa_swarm.common.logging import get_logger
 from noa_swarm.dictionaries.base import (
-    DictionaryProvider,
     DictionaryConcept,
+    DictionaryProvider,
     HierarchyNode,
     SearchResult,
 )
-
-if TYPE_CHECKING:
-    pass
 
 logger = get_logger(__name__)
 
@@ -261,7 +258,7 @@ class IECCDDProvider(DictionaryProvider):
 
             # IEC CDD search endpoint (simplified)
             url = f"{self._config.base_url}/Search"
-            params = {"q": query, "limit": max_results}
+            params: dict[str, str | int] = {"q": query, "limit": max_results}
 
             response = await client.get(url, params=params)
             response.raise_for_status()
@@ -307,7 +304,7 @@ class IECCDDProvider(DictionaryProvider):
             client = await self._get_client()
 
             url = f"{self._config.base_url}/Hierarchy/{irdi}"
-            params = {"depth": depth}
+            params: dict[str, int] = {"depth": depth}
 
             response = await client.get(url, params=params)
 

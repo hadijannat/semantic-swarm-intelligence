@@ -9,9 +9,12 @@ from __future__ import annotations
 import asyncio
 import csv
 import json
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from noa_swarm.common.schemas import TagRecord
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 async def import_from_csv(path: Path) -> list[TagRecord]:

@@ -23,18 +23,17 @@ References:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, cast
 
 import flwr as fl
-import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, Dataset, TensorDataset
 
 from noa_swarm.common.logging import get_logger
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from flwr.common.typing import Config, Metrics, NDArrays
 
 logger = get_logger(__name__)
 
@@ -150,7 +149,7 @@ class FedProxClient(fl.client.NumPyClient):
             device=str(self.device),
         )
 
-    def get_parameters(self, config: dict[str, Any]) -> list[np.ndarray]:
+    def get_parameters(self, config: Config) -> NDArrays:
         """Extract model parameters as a list of NumPy arrays.
 
         This method is called by the Flower server to retrieve the current
@@ -162,12 +161,13 @@ class FedProxClient(fl.client.NumPyClient):
         Returns:
             List of NumPy arrays containing model parameters.
         """
+        _ = config
         return [
             param.detach().cpu().numpy()
             for param in self.model.parameters()
         ]
 
-    def set_parameters(self, parameters: Sequence[np.ndarray]) -> None:
+    def set_parameters(self, parameters: NDArrays) -> None:
         """Update model parameters from a list of NumPy arrays.
 
         This method is called to set the model weights, typically with
@@ -208,9 +208,9 @@ class FedProxClient(fl.client.NumPyClient):
 
     def fit(
         self,
-        parameters: Sequence[np.ndarray],
-        config: dict[str, Any],
-    ) -> tuple[list[np.ndarray], int, dict[str, float]]:
+        parameters: NDArrays,
+        config: Config,
+    ) -> tuple[NDArrays, int, Metrics]:
         """Train the model on local data with FedProx regularization.
 
         This method performs local training while adding a proximal term
@@ -227,6 +227,7 @@ class FedProxClient(fl.client.NumPyClient):
             - Number of training examples used
             - Dictionary with training metrics (e.g., {"loss": 0.5})
         """
+        _ = config
         # Set model to global parameters first
         self.set_parameters(parameters)
 
@@ -266,7 +267,7 @@ class FedProxClient(fl.client.NumPyClient):
         total_loss = 0.0
         num_batches = 0
 
-        for epoch in range(self.config.local_epochs):
+        for _epoch in range(self.config.local_epochs):
             epoch_loss = 0.0
             epoch_batches = 0
 
@@ -335,9 +336,9 @@ class FedProxClient(fl.client.NumPyClient):
 
     def run_validation(
         self,
-        parameters: Sequence[np.ndarray],
-        config: dict[str, Any],
-    ) -> tuple[float, int, dict[str, float]]:
+        parameters: NDArrays,
+        config: Config,
+    ) -> tuple[float, int, Metrics]:
         """Run validation on local validation data.
 
         Args:
@@ -351,6 +352,7 @@ class FedProxClient(fl.client.NumPyClient):
             - Dictionary with validation metrics (e.g., {"accuracy": 0.9})
         """
         # Set model parameters
+        _ = config
         self.set_parameters(parameters)
 
         # Handle empty validation data
@@ -404,9 +406,9 @@ class FedProxClient(fl.client.NumPyClient):
     # Flower requires a method named 'evaluate' - this is the standard interface
     def evaluate(
         self,
-        parameters: Sequence[np.ndarray],
-        config: dict[str, Any],
-    ) -> tuple[float, int, dict[str, float]]:
+        parameters: NDArrays,
+        config: Config,
+    ) -> tuple[float, int, Metrics]:
         """Validate the model on local validation data (Flower interface).
 
         This method is part of the Flower NumPyClient interface and is called
@@ -429,7 +431,7 @@ class FedProxClient(fl.client.NumPyClient):
         features: torch.Tensor,
         labels: torch.Tensor,
         shuffle: bool = True,
-    ) -> DataLoader:
+    ) -> DataLoader[tuple[torch.Tensor, torch.Tensor]]:
         """Create a DataLoader from tensors.
 
         Args:
@@ -440,7 +442,7 @@ class FedProxClient(fl.client.NumPyClient):
         Returns:
             PyTorch DataLoader.
         """
-        dataset = TensorDataset(features, labels)
+        dataset = cast(Dataset[tuple[torch.Tensor, torch.Tensor]], TensorDataset(features, labels))
         return DataLoader(
             dataset,
             batch_size=min(self.config.batch_size, len(features)),

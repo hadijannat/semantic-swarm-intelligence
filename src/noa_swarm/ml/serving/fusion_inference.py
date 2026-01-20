@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
-from pathlib import Path
-from typing import Literal
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Literal, cast
 
 import torch
 
@@ -15,11 +14,11 @@ from noa_swarm.common.schemas import Candidate, Hypothesis, TagRecord, utc_now
 from noa_swarm.dictionaries import ProviderRegistry, SeedDictionaryProvider
 from noa_swarm.ml.datasets.synth_tags import SEED_IRDIS
 from noa_swarm.ml.models.charcnn import (
-    CharCNN,
-    CharCNNConfig,
-    CharacterTokenizer,
     PROPERTY_CLASSES,
     SIGNAL_ROLES,
+    CharacterTokenizer,
+    CharCNN,
+    CharCNNConfig,
 )
 from noa_swarm.ml.models.fusion import FusionConfig, FusionModel, IRDIEntry, IRDIRetriever
 from noa_swarm.ml.models.gnn import (
@@ -29,6 +28,9 @@ from noa_swarm.ml.models.gnn import (
     build_hierarchy_edges,
 )
 from noa_swarm.ml.serving.inference import InferenceConfig, RuleBasedInferenceEngine
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = get_logger(__name__)
 
@@ -317,7 +319,8 @@ class FusionInferenceEngine:
         batch = self._tokenizer.encode_batch(texts).to(self._device)
         with torch.no_grad():
             outputs = self._charcnn(batch, return_embeddings=True)
-        return outputs["irdi_embedding"].detach().cpu()
+        embedding = cast(torch.Tensor, outputs["irdi_embedding"])
+        return embedding.detach().cpu()
 
     async def infer(self, tags: list[TagRecord]) -> list[Hypothesis]:
         """Infer semantic mappings for a list of tags."""
@@ -362,7 +365,6 @@ class FusionInferenceEngine:
         hypotheses: list[Hypothesis] = []
         for idx, tag in enumerate(tags):
             candidates = self._build_candidates(
-                tag=tag,
                 property_probs=property_probs[idx],
                 signal_probs=signal_probs[idx],
                 retriever_hits=None if retriever_results is None else retriever_results[idx],
@@ -390,7 +392,6 @@ class FusionInferenceEngine:
 
     def _build_candidates(
         self,
-        tag: TagRecord,
         property_probs: torch.Tensor,
         signal_probs: torch.Tensor,
         retriever_hits: list[tuple[str, float, dict[str, str]]] | None,

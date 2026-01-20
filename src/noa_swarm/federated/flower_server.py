@@ -34,14 +34,12 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 import flwr as fl
-import numpy as np
 from flwr.common import (
-    FitRes,
     EvaluateRes,
+    FitRes,
     Parameters,
     Scalar,
     ndarrays_to_parameters,
-    parameters_to_ndarrays,
 )
 from flwr.server import ServerConfig
 from flwr.server.strategy import FedAvg
@@ -49,8 +47,7 @@ from flwr.server.strategy import FedAvg
 from noa_swarm.common.logging import get_logger
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
+    from flwr.common.typing import NDArrays
     from flwr.server.client_proxy import ClientProxy
 
 logger = get_logger(__name__)
@@ -261,10 +258,13 @@ class FedProxStrategy(FedAvg):
         loss_aggregated = weighted_loss / total_examples if total_examples > 0 else 0.0
 
         # Aggregate accuracy if available
-        accuracies = [
-            eval_res.metrics.get("accuracy", 0.0) * eval_res.num_examples
-            for _, eval_res in results
-        ]
+        accuracies: list[float] = []
+        for _, eval_res in results:
+            raw_accuracy = eval_res.metrics.get("accuracy", 0.0)
+            accuracy_value = (
+                float(raw_accuracy) if isinstance(raw_accuracy, int | float) else 0.0
+            )
+            accuracies.append(accuracy_value * eval_res.num_examples)
         weighted_accuracy = sum(accuracies) / total_examples if total_examples > 0 else 0.0
 
         logger.info(
@@ -288,7 +288,7 @@ class FedProxStrategy(FedAvg):
 
 def create_fedprox_server(
     config: FedProxServerConfig,
-    initial_parameters: Sequence[np.ndarray] | None = None,
+    initial_parameters: NDArrays | None = None,
 ) -> tuple[ServerConfig, FedProxStrategy]:
     """Create a FedProx server configuration and strategy.
 

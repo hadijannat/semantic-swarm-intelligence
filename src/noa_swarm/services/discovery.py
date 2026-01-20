@@ -5,12 +5,15 @@ from __future__ import annotations
 import asyncio
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from noa_swarm.common.logging import get_logger
 from noa_swarm.common.schemas import TagMappingRecord, TagRecord
 from noa_swarm.connectors.opcua_asyncua import OPCUABrowser
-from noa_swarm.storage.base import MappingRepository, TagRepository
+
+if TYPE_CHECKING:
+    from noa_swarm.storage.base import MappingRepository, TagRepository
 
 logger = get_logger(__name__)
 
@@ -61,7 +64,7 @@ class DiscoveryService:
                 discovered_count=0,
                 server_url=server_url,
                 operation_id=operation_id,
-                started_at=datetime.now(timezone.utc),
+                started_at=datetime.now(UTC),
             )
 
             self._task = asyncio.create_task(
@@ -77,7 +80,7 @@ class DiscoveryService:
             if self._task and not self._task.done():
                 self._task.cancel()
                 self._status.is_running = False
-                self._status.finished_at = datetime.now(timezone.utc)
+                self._status.finished_at = datetime.now(UTC)
             return self._snapshot()
 
     def get_status(self) -> DiscoveryStatus:
@@ -151,7 +154,7 @@ class DiscoveryService:
             self._status.discovered_count = len(tags)
             self._status.progress = 1.0
             self._status.is_running = False
-            self._status.finished_at = datetime.now(timezone.utc)
+            self._status.finished_at = datetime.now(UTC)
             logger.info(
                 "Discovery completed",
                 server_url=server_url,
@@ -159,10 +162,10 @@ class DiscoveryService:
             )
         except asyncio.CancelledError:
             self._status.is_running = False
-            self._status.finished_at = datetime.now(timezone.utc)
+            self._status.finished_at = datetime.now(UTC)
             logger.warning("Discovery cancelled", server_url=server_url)
         except Exception as exc:  # pragma: no cover - unexpected failures
             self._status.is_running = False
             self._status.error = str(exc)
-            self._status.finished_at = datetime.now(timezone.utc)
+            self._status.finished_at = datetime.now(UTC)
             logger.error("Discovery failed", error=str(exc), server_url=server_url)

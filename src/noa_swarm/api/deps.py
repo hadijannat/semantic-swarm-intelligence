@@ -2,8 +2,18 @@
 
 from __future__ import annotations
 
-from noa_swarm.services import AASService, DiscoveryService, FederatedService, MappingService, SwarmService
+from typing import TYPE_CHECKING
+
 from noa_swarm.services.state import get_state
+
+if TYPE_CHECKING:
+    from noa_swarm.services import (
+        AASService,
+        DiscoveryService,
+        FederatedService,
+        MappingService,
+        SwarmService,
+    )
 
 
 def get_discovery_service() -> DiscoveryService:

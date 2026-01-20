@@ -13,7 +13,7 @@ import contextvars
 import json
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -110,7 +110,7 @@ def json_serializer(record: Record) -> str:
     request_context = get_request_context()
 
     log_entry: dict[str, Any] = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "level": record["level"].name,
         "message": record["message"],
         "logger": record["name"],
@@ -169,6 +169,7 @@ def text_format(record: Record) -> str:
     Returns:
         Formatted string representation.
     """
+    _ = record
     correlation_id = get_correlation_id()
     correlation_part = f"[{correlation_id[:8]}] " if correlation_id else ""
 

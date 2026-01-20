@@ -2,19 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 
 from noa_swarm.dictionaries.base import (
-    DictionaryProvider,
     DictionaryConcept,
-    SearchResult,
+    DictionaryProvider,
     HierarchyNode,
+    SearchResult,
 )
-
-if TYPE_CHECKING:
-    pass
 
 
 class TestDictionaryConcept:
@@ -150,7 +145,6 @@ class TestDictionaryProvider:
 
     def test_protocol_defines_required_methods(self) -> None:
         """Test that DictionaryProvider defines required methods."""
-        from typing import get_type_hints
 
         # These should be defined as abstract methods
         assert hasattr(DictionaryProvider, "lookup")
@@ -205,7 +199,7 @@ class TestProviderRegistry:
 
     def test_registry_can_add_provider(self) -> None:
         """Test adding a provider to registry."""
-        from noa_swarm.dictionaries.base import ProviderRegistry, DictionaryProvider
+        from noa_swarm.dictionaries.base import DictionaryProvider, ProviderRegistry
 
         registry = ProviderRegistry()
 
@@ -249,7 +243,7 @@ class TestProviderRegistry:
 
     def test_registry_list_providers(self) -> None:
         """Test listing registered providers."""
-        from noa_swarm.dictionaries.base import ProviderRegistry, DictionaryProvider
+        from noa_swarm.dictionaries.base import DictionaryProvider, ProviderRegistry
 
         registry = ProviderRegistry()
 

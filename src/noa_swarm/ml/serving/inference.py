@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Iterable
 
 from noa_swarm.common.schemas import Candidate, Hypothesis, TagRecord, utc_now
 from noa_swarm.dictionaries import ProviderRegistry, SeedDictionaryProvider

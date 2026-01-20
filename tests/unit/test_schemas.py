@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC
 
 import pytest
 from pydantic import ValidationError
@@ -96,7 +96,7 @@ class TestTagRecord:
         )
 
         assert tag.discovered_at is not None
-        assert tag.discovered_at.tzinfo == timezone.utc
+        assert tag.discovered_at.tzinfo == UTC
 
     def test_tag_record_immutable(self) -> None:
         """Test TagRecord is immutable."""
@@ -336,7 +336,7 @@ class TestVote:
         )
 
         assert vote.timestamp is not None
-        assert vote.timestamp.tzinfo == timezone.utc
+        assert vote.timestamp.tzinfo == UTC
 
 
 class TestConsensusRecord:

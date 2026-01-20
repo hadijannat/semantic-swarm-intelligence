@@ -474,7 +474,7 @@ def train_model(
     criterion = nn.CrossEntropyLoss()
 
     # Learning rate scheduler
-    scheduler = None
+    scheduler: torch.optim.lr_scheduler.LRScheduler | None = None
     if config.lr_schedule == "step":
         scheduler = torch.optim.lr_scheduler.StepLR(
             optimizer,

@@ -28,17 +28,18 @@ import io
 import json as json_module
 from dataclasses import dataclass
 from enum import Enum
-from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from basyx.aas import model
+from basyx.aas.adapter import aasx as aas_aasx
 from basyx.aas.adapter import json as aas_json
 from basyx.aas.adapter import xml as aas_xml
-from basyx.aas.adapter import aasx as aas_aasx
 
 from noa_swarm.common.logging import get_logger
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from noa_swarm.aas.submodels import TagMappingSubmodel
 
 logger = get_logger(__name__)
@@ -97,6 +98,8 @@ def create_tag_mapping_aas(
     Returns:
         Tuple of (AssetAdministrationShell, Submodel).
     """
+    _ = asset_id_short
+
     # Convert our submodel to BaSyx submodel
     basyx_submodel = submodel.to_basyx_submodel()
 
@@ -172,7 +175,8 @@ class AASExporter:
 
         # Serialize to JSON
         output = io.BytesIO()
-        aas_json.write_aas_json_file(output, object_store)
+        json_adapter = cast(Any, aas_json)
+        json_adapter.write_aas_json_file(output, object_store)
 
         json_str = output.getvalue().decode("utf-8")
 
@@ -205,7 +209,8 @@ class AASExporter:
 
         # Serialize to XML
         output = io.BytesIO()
-        aas_xml.write_aas_xml_file(output, object_store)
+        xml_adapter = cast(Any, aas_xml)
+        xml_adapter.write_aas_xml_file(output, object_store)
 
         xml_str = output.getvalue().decode("utf-8")
 
@@ -234,9 +239,8 @@ class AASExporter:
         )
 
         # Create file store for any supplementary files
-        file_store: aas_aasx.DictSupplementaryFileContainer = (
-            aas_aasx.DictSupplementaryFileContainer()
-        )
+        file_store_class = cast(Any, aas_aasx.DictSupplementaryFileContainer)
+        file_store: aas_aasx.DictSupplementaryFileContainer = file_store_class()
 
         # Write AASX package
         with aas_aasx.AASXWriter(str(output_path)) as writer:

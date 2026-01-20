@@ -6,9 +6,10 @@ Concrete implementations can target in-memory, SQLite, or Postgres backends.
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from noa_swarm.common.schemas import ConsensusRecord, TagMappingRecord, TagRecord
+if TYPE_CHECKING:
+    from noa_swarm.common.schemas import ConsensusRecord, TagMappingRecord, TagRecord
 
 
 class TagRepository(Protocol):

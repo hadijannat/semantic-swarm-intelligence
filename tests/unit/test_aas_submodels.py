@@ -2,21 +2,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-from datetime import datetime
-
 import pytest
 
 from noa_swarm.aas.submodels import (
-    TagMappingSubmodel,
+    ConsensusInfo,
     DiscoveredTag,
     MappingStatistics,
-    ConsensusInfo,
     MappingStatus,
+    TagMappingSubmodel,
 )
-
-if TYPE_CHECKING:
-    pass
 
 
 class TestMappingStatus:

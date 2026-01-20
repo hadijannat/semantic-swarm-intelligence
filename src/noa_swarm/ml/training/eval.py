@@ -9,7 +9,7 @@ This module provides evaluation functions for assessing model performance:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import torch
@@ -19,8 +19,8 @@ if TYPE_CHECKING:
 
 
 def compute_accuracy(
-    predictions: torch.Tensor | np.ndarray,
-    targets: torch.Tensor | np.ndarray,
+    predictions: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
+    targets: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
 ) -> float:
     """Compute overall classification accuracy.
 
@@ -54,8 +54,8 @@ def compute_accuracy(
 
 
 def compute_per_class_accuracy(
-    predictions: torch.Tensor | np.ndarray,
-    targets: torch.Tensor | np.ndarray,
+    predictions: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
+    targets: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
     num_classes: int | None = None,
 ) -> dict[int, float]:
     """Compute per-class accuracy.
@@ -99,8 +99,8 @@ def compute_per_class_accuracy(
 
 
 def compute_macro_f1(
-    predictions: torch.Tensor | np.ndarray,
-    targets: torch.Tensor | np.ndarray,
+    predictions: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
+    targets: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
     num_classes: int | None = None,
 ) -> float:
     """Compute macro-averaged F1 score.
@@ -149,10 +149,7 @@ def compute_macro_f1(
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
 
         # F1 score
-        if precision + recall > 0:
-            f1 = 2 * (precision * recall) / (precision + recall)
-        else:
-            f1 = 0.0
+        f1 = 2 * (precision * recall) / (precision + recall) if precision + recall > 0 else 0.0
 
         f1_scores.append(f1)
 
@@ -160,10 +157,10 @@ def compute_macro_f1(
 
 
 def compute_confusion_matrix(
-    predictions: torch.Tensor | np.ndarray,
-    targets: torch.Tensor | np.ndarray,
+    predictions: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
+    targets: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
     num_classes: int | None = None,
-) -> np.ndarray:
+) -> np.ndarray[Any, np.dtype[np.int64]]:
     """Compute confusion matrix.
 
     Args:

@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from noa_swarm.common.schemas import Candidate, ConsensusRecord, Hypothesis, Vote
-from noa_swarm.connectors.mqtt import MQTTClient, MQTTClientConfig
+from noa_swarm.connectors.mqtt import MQTTClient
 from noa_swarm.swarm.gossip import (
     TOPIC_AGENTS_PREFIX,
     TOPIC_ALL_AGENTS,
@@ -107,7 +106,7 @@ class TestGossipMessage:
 
     def test_create_message_with_all_fields(self) -> None:
         """Test creating a gossip message with all fields."""
-        ts = datetime(2024, 1, 15, 10, 0, 0, tzinfo=timezone.utc)
+        ts = datetime(2024, 1, 15, 10, 0, 0, tzinfo=UTC)
         msg = GossipMessage(
             message_type="vote",
             agent_id="agent-002",

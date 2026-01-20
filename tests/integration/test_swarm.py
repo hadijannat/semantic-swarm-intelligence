@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 import pytest
 
-from noa_swarm.common.schemas import Candidate, Hypothesis, TagRecord, Vote
+from noa_swarm.common.schemas import TagRecord, Vote
 from noa_swarm.swarm.consensus import ConsensusConfig, ConsensusEngine
 from noa_swarm.swarm.reputation import ReputationConfig, ReputationTracker
 

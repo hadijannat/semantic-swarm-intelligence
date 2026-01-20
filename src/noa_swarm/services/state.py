@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from noa_swarm.dictionaries import ProviderRegistry, SeedDictionaryProvider
 from noa_swarm.services.aas import AASService
@@ -20,7 +21,9 @@ from noa_swarm.storage import (
     SqlAlchemyMappingRepository,
     SqlAlchemyTagRepository,
 )
-from noa_swarm.storage.base import ConsensusRepository, MappingRepository, TagRepository
+
+if TYPE_CHECKING:
+    from noa_swarm.storage.base import ConsensusRepository, MappingRepository, TagRepository
 
 
 @dataclass
@@ -60,9 +63,11 @@ def get_state() -> AppState:
         database: Database | None = None
         if database_url:
             database = Database(DatabaseConfig(url=database_url))
-            tag_repo = SqlAlchemyTagRepository(database.sessionmaker)
-            mapping_repo = SqlAlchemyMappingRepository(database.sessionmaker)
-            consensus_repo = SqlAlchemyConsensusRepository(database.sessionmaker)
+            tag_repo: TagRepository = SqlAlchemyTagRepository(database.sessionmaker)
+            mapping_repo: MappingRepository = SqlAlchemyMappingRepository(database.sessionmaker)
+            consensus_repo: ConsensusRepository = SqlAlchemyConsensusRepository(
+                database.sessionmaker
+            )
         else:
             tag_repo = InMemoryTagRepository()
             mapping_repo = InMemoryMappingRepository()

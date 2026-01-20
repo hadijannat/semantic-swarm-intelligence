@@ -58,6 +58,12 @@ Example usage:
     ...     pass
 """
 
+from noa_swarm.swarm.agent import (
+    AgentState,
+    SemanticAgent,
+    SemanticAgentConfig,
+    SemanticAgentError,
+)
 from noa_swarm.swarm.consensus import (
     ConsensusConfig,
     ConsensusEngine,
@@ -90,12 +96,6 @@ from noa_swarm.swarm.reputation import (
     AgentReputation,
     ReputationConfig,
     ReputationTracker,
-)
-from noa_swarm.swarm.agent import (
-    AgentState,
-    SemanticAgent,
-    SemanticAgentConfig,
-    SemanticAgentError,
 )
 
 __all__ = [

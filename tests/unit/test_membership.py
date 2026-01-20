@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from noa_swarm.swarm.membership import (
-    MemberStatus,
     SwarmAlreadyRunningError,
     SwarmMember,
     SwarmMembership,
@@ -40,8 +38,8 @@ class TestSwarmMember:
 
     def test_create_full_member(self) -> None:
         """Test creating SwarmMember with all fields."""
-        joined = datetime(2024, 1, 15, 10, 0, 0, tzinfo=timezone.utc)
-        last_seen = datetime(2024, 1, 15, 10, 5, 0, tzinfo=timezone.utc)
+        joined = datetime(2024, 1, 15, 10, 0, 0, tzinfo=UTC)
+        last_seen = datetime(2024, 1, 15, 10, 5, 0, tzinfo=UTC)
 
         member = SwarmMember(
             agent_id="agent-002",

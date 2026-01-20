@@ -14,14 +14,14 @@ from noa_swarm.common.ids import IRDI
 from noa_swarm.ml.datasets import (
     CMAPSS_OPERATIONAL_SETTINGS,
     CMAPSS_SENSORS,
-    CMAPSSDataset,
-    DatasetSplit,
     SEED_IRDIS,
-    SyntheticTagGenerator,
     TAG_PATTERN_TO_IRDI,
-    TagSample,
     TEP_XMEAS_VARIABLES,
     TEP_XMV_VARIABLES,
+    CMAPSSDataset,
+    DatasetSplit,
+    SyntheticTagGenerator,
+    TagSample,
     TEPDataset,
 )
 

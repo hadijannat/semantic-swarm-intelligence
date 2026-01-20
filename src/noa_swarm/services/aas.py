@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from typing import TYPE_CHECKING
+
 from noa_swarm.aas import (
     AASExporter,
     ConsensusInfo,
@@ -12,8 +15,10 @@ from noa_swarm.aas import (
     TagMappingSubmodel,
     create_tag_mapping_aas,
 )
-from noa_swarm.common.schemas import TagMappingRecord
-from noa_swarm.storage.base import MappingRepository
+
+if TYPE_CHECKING:
+    from noa_swarm.common.schemas import TagMappingRecord
+    from noa_swarm.storage.base import MappingRepository
 
 
 class AASService:
@@ -37,7 +42,7 @@ class AASService:
         submodel_id: str,
         aas_id: str,
         asset_id: str,
-        output_path: str,
+        output_path: str | Path,
         export_format: ExportFormat,
         include_timestamps: bool = True,
         include_statistics: bool = True,
@@ -50,7 +55,8 @@ class AASService:
             include_statistics=include_statistics,
         )
         exporter = AASExporter(config=config)
-        exporter.export_to_file(aas, sm, output_path, export_format)
+        path = Path(output_path)
+        exporter.export_to_file(aas, sm, path, export_format)
 
     @staticmethod
     def _to_discovered_tag(mapping: TagMappingRecord) -> DiscoveredTag:

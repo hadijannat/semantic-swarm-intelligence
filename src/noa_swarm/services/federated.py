@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -34,11 +34,11 @@ class FederatedService:
             current_round=0,
             total_rounds=total_rounds,
             participating_clients=min_clients,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
         return self._state
 
     def stop(self) -> FederatedStatusState:
         self._state.is_training = False
-        self._state.stopped_at = datetime.now(timezone.utc)
+        self._state.stopped_at = datetime.now(UTC)
         return self._state

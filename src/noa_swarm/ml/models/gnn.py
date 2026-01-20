@@ -19,7 +19,7 @@ The GNN is designed to be fused with CharCNN outputs for final prediction.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
@@ -98,7 +98,7 @@ class TagGraphGNN(nn.Module):
 
         # Build GraphSAGE layers
         self.convs = nn.ModuleList()
-        self.batch_norms = nn.ModuleList() if self.config.use_batch_norm else None
+        self.batch_norms = nn.ModuleList()
 
         # First layer: input_dim -> hidden_dim
         self.convs.append(
@@ -154,14 +154,16 @@ class TagGraphGNN(nn.Module):
     def _init_weights(self) -> None:
         """Initialize model weights."""
         for conv in self.convs:
-            if hasattr(conv, "lin_l"):
-                nn.init.xavier_uniform_(conv.lin_l.weight)
-                if conv.lin_l.bias is not None:
-                    nn.init.zeros_(conv.lin_l.bias)
-            if hasattr(conv, "lin_r"):
-                nn.init.xavier_uniform_(conv.lin_r.weight)
-                if conv.lin_r.bias is not None:
-                    nn.init.zeros_(conv.lin_r.bias)
+            lin_l = getattr(conv, "lin_l", None)
+            if isinstance(lin_l, nn.Linear):
+                nn.init.xavier_uniform_(lin_l.weight)
+                if lin_l.bias is not None:
+                    nn.init.zeros_(lin_l.bias)
+            lin_r = getattr(conv, "lin_r", None)
+            if isinstance(lin_r, nn.Linear):
+                nn.init.xavier_uniform_(lin_r.weight)
+                if lin_r.bias is not None:
+                    nn.init.zeros_(lin_r.bias)
 
     def forward(
         self,
@@ -188,7 +190,7 @@ class TagGraphGNN(nn.Module):
         # Pass through GraphSAGE layers
         for i, conv in enumerate(self.convs[:-1]):
             x = conv(x, edge_index)
-            if self.batch_norms is not None and i < len(self.batch_norms):
+            if i < len(self.batch_norms):
                 x = self.batch_norms[i](x)
             x = F.relu(x)
             x = self.dropout(x)
@@ -327,7 +329,7 @@ def build_hierarchy_edges(
 
 
 def build_correlation_edges(
-    time_series_data: np.ndarray | torch.Tensor,
+    time_series_data: np.ndarray[Any, np.dtype[Any]] | torch.Tensor,
     threshold: float = 0.7,
     method: Literal["pearson", "spearman"] = "pearson",
 ) -> torch.Tensor:
@@ -440,7 +442,8 @@ def combine_edge_sources(
         # Convert to set of tuples for deduplication
         edges_set: set[tuple[int, int]] = set()
         for i in range(combined.size(1)):
-            src, dst = combined[0, i].item(), combined[1, i].item()
+            src = int(combined[0, i].item())
+            dst = int(combined[1, i].item())
             edges_set.add((src, dst))
 
         # Convert back to tensor
@@ -485,7 +488,7 @@ def add_self_loops(edge_index: torch.Tensor, num_nodes: int) -> torch.Tensor:
 # =============================================================================
 
 
-class TagGraphDataset(Dataset):
+class TagGraphDataset(Dataset):  # type: ignore[misc]
     """PyTorch Geometric dataset for industrial tag graphs.
 
     This dataset creates graph structures from TagRecord objects, including:
@@ -515,10 +518,10 @@ class TagGraphDataset(Dataset):
     def __init__(
         self,
         tag_records: Sequence[TagRecord],
-        node_features: torch.Tensor | np.ndarray,
+        node_features: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
         edge_index: torch.Tensor | None = None,
-        labels: torch.Tensor | np.ndarray | None = None,
-        time_series_data: np.ndarray | None = None,
+        labels: torch.Tensor | np.ndarray[Any, np.dtype[Any]] | None = None,
+        time_series_data: np.ndarray[Any, np.dtype[Any]] | None = None,
         correlation_threshold: float = 0.7,
         include_hierarchy_edges: bool = True,
         include_correlation_edges: bool = True,
@@ -578,6 +581,7 @@ class TagGraphDataset(Dataset):
         if add_self_loops:
             self._edge_index = globals()["add_self_loops"](self._edge_index, self.num_nodes)
 
+        self._labels: torch.Tensor | None
         # Convert labels to tensor
         if labels is not None:
             if isinstance(labels, np.ndarray):
@@ -651,7 +655,7 @@ class TagGraphDataset(Dataset):
         return self.tag_records[idx]
 
 
-class MultiGraphTagDataset(Dataset):
+class MultiGraphTagDataset(Dataset):  # type: ignore[misc]
     """PyTorch Geometric dataset with multiple graphs.
 
     This dataset creates separate graphs for different subsets of tags
@@ -687,8 +691,8 @@ class MultiGraphTagDataset(Dataset):
     def from_tag_records_by_server(
         cls,
         tag_records: Sequence[TagRecord],
-        node_features: torch.Tensor | np.ndarray,
-        labels: torch.Tensor | np.ndarray | None = None,
+        node_features: torch.Tensor | np.ndarray[Any, np.dtype[Any]],
+        labels: torch.Tensor | np.ndarray[Any, np.dtype[Any]] | None = None,
         **kwargs: Any,
     ) -> MultiGraphTagDataset:
         """Create a dataset with one graph per source server.
@@ -716,7 +720,7 @@ class MultiGraphTagDataset(Dataset):
             server_to_tags[server].append((i, tag))
 
         graphs: list[Data] = []
-        for server, indexed_tags in server_to_tags.items():
+        for _server, indexed_tags in server_to_tags.items():
             indices = [i for i, _ in indexed_tags]
             tags = [tag for _, tag in indexed_tags]
 
@@ -769,7 +773,7 @@ def create_node_features_from_embeddings(
 
 
 def compute_statistical_features(
-    time_series_data: np.ndarray | torch.Tensor,
+    time_series_data: np.ndarray[Any, np.dtype[Any]] | torch.Tensor,
 ) -> torch.Tensor:
     """Compute statistical features from time-series data.
 
@@ -791,19 +795,19 @@ def compute_statistical_features(
         min_val = data.min(dim=1, keepdim=True).values
         max_val = data.max(dim=1, keepdim=True).values
         range_val = max_val - min_val
-    else:
-        data = time_series_data
-        mean = data.mean(axis=1, keepdims=True)
-        std = data.std(axis=1, keepdims=True)
-        min_val = data.min(axis=1, keepdims=True)
-        max_val = data.max(axis=1, keepdims=True)
-        range_val = max_val - min_val
+        return torch.cat([mean, std, min_val, max_val, range_val], dim=1)
 
-        # Convert to tensor
-        mean = torch.from_numpy(mean).float()
-        std = torch.from_numpy(std).float()
-        min_val = torch.from_numpy(min_val).float()
-        max_val = torch.from_numpy(max_val).float()
-        range_val = torch.from_numpy(range_val).float()
+    data_np = np.asarray(time_series_data)
+    mean_np = data_np.mean(axis=1, keepdims=True)
+    std_np = data_np.std(axis=1, keepdims=True)
+    min_np = data_np.min(axis=1, keepdims=True)
+    max_np = data_np.max(axis=1, keepdims=True)
+    range_np = max_np - min_np
+
+    mean = torch.from_numpy(mean_np).float()
+    std = torch.from_numpy(std_np).float()
+    min_val = torch.from_numpy(min_np).float()
+    max_val = torch.from_numpy(max_np).float()
+    range_val = torch.from_numpy(range_np).float()
 
     return torch.cat([mean, std, min_val, max_val, range_val], dim=1)

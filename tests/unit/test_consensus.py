@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -195,7 +195,7 @@ class TestConsensusEngineFreshness:
 
     def test_fresh_vote_has_high_freshness(self, engine: ConsensusEngine) -> None:
         """Test that a fresh vote (just cast) has freshness close to 1."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         vote_time = now
 
         freshness = engine.compute_freshness_factor(vote_time, now)
@@ -205,7 +205,7 @@ class TestConsensusEngineFreshness:
     def test_one_half_life_old_vote(self, engine: ConsensusEngine) -> None:
         """Test that a vote one half-life old has freshness of 0.5."""
         # Default half-life is 24 hours
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         vote_time = now - timedelta(hours=24)
 
         freshness = engine.compute_freshness_factor(vote_time, now)
@@ -214,7 +214,7 @@ class TestConsensusEngineFreshness:
 
     def test_two_half_lives_old_vote(self, engine: ConsensusEngine) -> None:
         """Test that a vote two half-lives old has freshness of 0.25."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         vote_time = now - timedelta(hours=48)
 
         freshness = engine.compute_freshness_factor(vote_time, now)
@@ -226,7 +226,7 @@ class TestConsensusEngineFreshness:
         config = ConsensusConfig(freshness_decay_hours=12.0)
         engine = ConsensusEngine(config)
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         vote_time = now - timedelta(hours=12)
 
         freshness = engine.compute_freshness_factor(vote_time, now)
@@ -235,7 +235,7 @@ class TestConsensusEngineFreshness:
 
     def test_future_vote_has_freshness_one(self, engine: ConsensusEngine) -> None:
         """Test that future timestamps are clamped to freshness 1."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         future_time = now + timedelta(hours=1)
 
         freshness = engine.compute_freshness_factor(future_time, now)
@@ -259,7 +259,7 @@ class TestConsensusEngineWeightedVote:
             candidate_irdi="0173-1#01-ABA234#001",
             confidence=0.8,
             reliability_score=0.9,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
     def test_compute_weighted_vote(
@@ -291,11 +291,11 @@ class TestConsensusEngineWeightedVote:
             candidate_irdi="0173-1#01-ABA234#001",
             confidence=0.8,
             reliability_score=0.9,
-            timestamp=datetime.now(timezone.utc) - timedelta(hours=24),
+            timestamp=datetime.now(UTC) - timedelta(hours=24),
         )
 
         calibration = 0.95
-        reference_time = datetime.now(timezone.utc)
+        reference_time = datetime.now(UTC)
 
         weighted = engine.compute_weighted_vote(old_vote, calibration, reference_time)
 
@@ -318,7 +318,7 @@ class TestConsensusEngineAggregation:
     @pytest.fixture
     def reference_time(self) -> datetime:
         """Create a reference time for testing."""
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     def test_aggregate_single_vote(
         self, engine: ConsensusEngine, reference_time: datetime
@@ -450,7 +450,7 @@ class TestConsensusEngineQuorum:
     @pytest.fixture
     def reference_time(self) -> datetime:
         """Create a reference time for testing."""
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     def test_hard_quorum(
         self, engine: ConsensusEngine, reference_time: datetime
@@ -636,7 +636,7 @@ class TestConsensusEngineReachConsensus:
     @pytest.fixture
     def reference_time(self) -> datetime:
         """Create a reference time for testing."""
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     def test_reach_consensus_unanimous(
         self, engine: ConsensusEngine, reference_time: datetime
@@ -799,7 +799,7 @@ class TestConsensusEngineReachConsensus:
 
     def test_reach_consensus_with_old_votes(self, engine: ConsensusEngine) -> None:
         """Test consensus with votes of different ages."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         votes = [
             # Fresh vote
@@ -896,7 +896,7 @@ class TestConsensusEngineEdgeCases:
     @pytest.fixture
     def reference_time(self) -> datetime:
         """Create a reference time for testing."""
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     def test_single_vote_below_min(
         self, engine: ConsensusEngine, reference_time: datetime
@@ -974,7 +974,7 @@ class TestConsensusEngineEdgeCases:
 
     def test_very_old_votes(self, engine: ConsensusEngine) -> None:
         """Test consensus with very old votes (low freshness)."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         old_time = now - timedelta(days=30)  # 30 days old
 
         votes = [
@@ -1047,7 +1047,7 @@ class TestConsensusEngineIntegration:
         engine = ConsensusEngine(config)
 
         # 3. Create votes
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         votes = [
             Vote(
                 agent_id="agent-001",

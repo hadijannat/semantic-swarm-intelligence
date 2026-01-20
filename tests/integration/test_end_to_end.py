@@ -9,7 +9,7 @@ import pytest
 from noa_swarm.aas.basyx_export import AASExporter, ExportConfig
 from noa_swarm.aas.submodels import TagMappingSubmodel
 from noa_swarm.common.schemas import TagRecord, Vote
-from noa_swarm.ml.models.charcnn import CharCNN, CharCNNConfig, CharacterTokenizer
+from noa_swarm.ml.models.charcnn import CharacterTokenizer, CharCNN, CharCNNConfig
 from noa_swarm.ml.serving import InferenceConfig, RuleBasedInferenceEngine
 from noa_swarm.swarm.consensus import ConsensusConfig, ConsensusEngine
 

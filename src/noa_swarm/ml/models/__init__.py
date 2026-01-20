@@ -10,7 +10,7 @@ This module provides:
 - IRDIRetriever: Top-K IRDI retrieval using embedding similarity
 """
 
-from noa_swarm.ml.models.charcnn import CharCNN, CharacterTokenizer
+from noa_swarm.ml.models.charcnn import CharacterTokenizer, CharCNN
 from noa_swarm.ml.models.fusion import (
     FusionConfig,
     FusionModel,

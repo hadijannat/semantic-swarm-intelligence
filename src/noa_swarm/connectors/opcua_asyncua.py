@@ -7,19 +7,20 @@ from OPC UA servers. Write operations are explicitly prohibited.
 from __future__ import annotations
 
 import asyncio
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, AsyncIterator, Self
+from typing import TYPE_CHECKING, Self
 
-from asyncua import Client, Node, ua
-from asyncua.common.node import Node as NodeType
+from asyncua import Client, ua
 from loguru import logger
 
 from noa_swarm.common.config import OPCUASettings
 from noa_swarm.common.schemas import TagRecord
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import AsyncIterator, Sequence
+
+    from asyncua.common.node import Node as NodeType
 
 
 class OPCUABrowserError(Exception):
@@ -211,6 +212,7 @@ class OPCUABrowser:
         Raises:
             OPCUAWriteAttemptError: Always raised.
         """
+        _ = args, kwargs
         raise OPCUAWriteAttemptError("write_value is not allowed - this browser is read-only")
 
     async def write_attribute(self, *args: object, **kwargs: object) -> None:
@@ -219,6 +221,7 @@ class OPCUABrowser:
         Raises:
             OPCUAWriteAttemptError: Always raised.
         """
+        _ = args, kwargs
         raise OPCUAWriteAttemptError("write_attribute is not allowed - this browser is read-only")
 
     async def call_method(self, *args: object, **kwargs: object) -> None:
@@ -227,6 +230,7 @@ class OPCUABrowser:
         Raises:
             OPCUAWriteAttemptError: Always raised.
         """
+        _ = args, kwargs
         raise OPCUAWriteAttemptError("call_method is not allowed - this browser is read-only")
 
     # =========================================================================
@@ -249,10 +253,7 @@ class OPCUABrowser:
         """
         client = self._ensure_connected()
 
-        if start_node:
-            root = client.get_node(start_node)
-        else:
-            root = client.nodes.objects
+        root = client.get_node(start_node) if start_node else client.nodes.objects
 
         results: list[BrowseResult] = []
         await self._browse_recursive(root, [], results, max_depth, 0)
@@ -419,25 +420,19 @@ class OPCUABrowser:
         except Exception:
             pass
 
-        try:
+        with suppress(Exception):
             # Get description
             desc = await node.read_description()
             if desc and desc.Text:
                 result.description = desc.Text
-        except Exception:
-            pass
 
-        try:
+        with suppress(Exception):
             # Get access level
             result.access_level = await node.read_access_level()
-        except Exception:
-            pass
 
-        try:
+        with suppress(Exception):
             # Try to get engineering unit from EURange or EUInformation
             await self._extract_engineering_unit(node, result)
-        except Exception:
-            pass
 
     async def _extract_engineering_unit(self, node: NodeType, result: BrowseResult) -> None:
         """Try to extract engineering unit from a variable node.
@@ -495,12 +490,10 @@ class OPCUABrowser:
                     pass
 
                 # Also check the browse name or display name
-                try:
-                    browse_name = (await target_node.read_browse_name()).Name
+                with suppress(Exception):
+                    browse_name = str((await target_node.read_browse_name()).Name)
                     if browse_name and self._looks_like_irdi(browse_name):
                         return browse_name
-                except Exception:
-                    pass
 
         except Exception as e:
             logger.debug(f"Error extracting IRDI from references: {e}")
@@ -558,7 +551,7 @@ class OPCUABrowser:
         except Exception as e:
             raise OPCUABrowseError(f"Failed to read value from {node_id}: {e}") from e
 
-    async def read_values(self, node_ids: Sequence[str]) -> list[object]:
+    async def read_values(self, node_ids: Sequence[str]) -> list[object | None]:
         """Read values from multiple nodes concurrently.
 
         Args:
@@ -574,7 +567,7 @@ class OPCUABrowser:
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Check for exceptions
-        values = []
+        values: list[object | None] = []
         for i, result in enumerate(results):
             if isinstance(result, Exception):
                 logger.warning(f"Failed to read {node_ids[i]}: {result}")

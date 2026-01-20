@@ -17,8 +17,8 @@ Example usage:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from noa_swarm.common.logging import get_logger
 from noa_swarm.common.schemas import ConsensusRecord, QuorumType, Vote, utc_now
@@ -27,6 +27,7 @@ logger = get_logger(__name__)
 
 
 @dataclass(frozen=True)
+@dataclass
 class ConsensusConfig:
     """Configuration for the consensus engine.
 
@@ -140,7 +141,7 @@ class ConsensusEngine:
             config: Configuration for consensus thresholds and weights.
                    Uses default ConsensusConfig if not provided.
         """
-        self.config = config or ConsensusConfig()
+        self.config: ConsensusConfig = config or ConsensusConfig()
         logger.debug(
             "ConsensusEngine initialized",
             hard_quorum=self.config.hard_quorum_threshold,
@@ -170,16 +171,17 @@ class ConsensusEngine:
 
         # Ensure both timestamps are timezone-aware
         if vote_timestamp.tzinfo is None:
-            vote_timestamp = vote_timestamp.replace(tzinfo=timezone.utc)
+            vote_timestamp = vote_timestamp.replace(tzinfo=UTC)
         if reference_time.tzinfo is None:
-            reference_time = reference_time.replace(tzinfo=timezone.utc)
+            reference_time = reference_time.replace(tzinfo=UTC)
 
         # Calculate age in hours
         age_seconds = (reference_time - vote_timestamp).total_seconds()
         hours_old = max(0.0, age_seconds / 3600.0)  # Clamp to non-negative
 
         # Exponential decay with half-life
-        freshness = 0.5 ** (hours_old / self.config.freshness_decay_hours)
+        decay_hours = float(self.config.freshness_decay_hours)
+        freshness = float(0.5 ** (hours_old / decay_hours))
 
         return freshness
 

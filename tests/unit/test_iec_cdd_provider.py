@@ -2,24 +2,20 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from noa_swarm.dictionaries.base import (
-    DictionaryProvider,
     DictionaryConcept,
-    SearchResult,
+    DictionaryProvider,
     HierarchyNode,
+    SearchResult,
 )
 from noa_swarm.dictionaries.iec_cdd_provider import (
-    IECCDDProvider,
     IECCDDConfig,
+    IECCDDProvider,
 )
-
-if TYPE_CHECKING:
-    pass
 
 
 class TestIECCDDConfig:

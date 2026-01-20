@@ -33,12 +33,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
-from numpy.typing import NDArray
 
 from noa_swarm.ml.datasets.synth_tags import SEED_IRDIS, DatasetSplit, TagSample
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+
+    from numpy.typing import NDArray
 
 
 # C-MAPSS Sensor Definitions

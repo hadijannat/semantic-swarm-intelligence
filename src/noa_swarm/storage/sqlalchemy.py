@@ -2,18 +2,24 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
-from sqlalchemy import JSON, DateTime, Float, Integer, String, Text, select
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import JSON, DateTime, Float, Integer, String, Text, delete, select
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from noa_swarm.common.logging import get_logger
 from noa_swarm.common.schemas import (
     Candidate,
     ConsensusRecord,
+    MappingStatus,
+    QuorumType,
     TagMappingRecord,
     TagRecord,
     Vote,
@@ -174,7 +180,7 @@ class SqlAlchemyTagRepository(TagRepository):
 
     async def clear(self) -> None:
         async with self._sessionmaker() as session:
-            await session.execute(TagModel.__table__.delete())
+            await session.execute(delete(TagModel))
             await session.commit()
 
     @staticmethod
@@ -262,7 +268,7 @@ class SqlAlchemyMappingRepository(MappingRepository):
 
     async def clear(self) -> None:
         async with self._sessionmaker() as session:
-            await session.execute(MappingModel.__table__.delete())
+            await session.execute(delete(MappingModel))
             await session.commit()
 
     @staticmethod
@@ -276,7 +282,7 @@ class SqlAlchemyMappingRepository(MappingRepository):
             browse_path=record.browse_path,
             irdi=record.irdi,
             preferred_name=record.preferred_name,
-            status=record.status,
+            status=cast(MappingStatus, record.status),
             confidence=record.confidence,
             candidates=candidates,
             created_at=record.created_at,
@@ -344,7 +350,7 @@ class SqlAlchemyConsensusRepository(ConsensusRepository):
 
     async def clear(self) -> None:
         async with self._sessionmaker() as session:
-            await session.execute(ConsensusModel.__table__.delete())
+            await session.execute(delete(ConsensusModel))
             await session.commit()
 
     @staticmethod
@@ -355,7 +361,7 @@ class SqlAlchemyConsensusRepository(ConsensusRepository):
             agreed_irdi=record.agreed_irdi,
             consensus_confidence=record.consensus_confidence,
             votes=votes,
-            quorum_type=record.quorum_type,
+            quorum_type=cast(QuorumType, record.quorum_type),
             human_validated=bool(record.human_validated),
             audit_trail=record.audit_trail or [],
             created_at=record.created_at,

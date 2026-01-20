@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
-from noa_swarm.common.schemas import ConsensusRecord
-from noa_swarm.storage.base import ConsensusRepository
+if TYPE_CHECKING:
+    from noa_swarm.common.schemas import ConsensusRecord
+    from noa_swarm.storage.base import ConsensusRepository
 
 
 @dataclass
@@ -56,7 +58,7 @@ class SwarmService:
         records = await self._consensus_repo.list(limit=10_000)
 
         completed_today = 0
-        today = datetime.now(timezone.utc).date()
+        today = datetime.now(UTC).date()
         for record in records:
             if record.created_at.date() == today:
                 completed_today += 1

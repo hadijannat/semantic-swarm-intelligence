@@ -74,13 +74,10 @@ class ConsensusInfo:
     def __post_init__(self) -> None:
         """Validate consensus info fields."""
         if not (0.0 <= self.confidence <= 1.0):
-            raise ValueError(
-                f"confidence must be between 0.0 and 1.0, got {self.confidence}"
-            )
+            raise ValueError(f"confidence must be between 0.0 and 1.0, got {self.confidence}")
         if not (0.0 <= self.agreement_ratio <= 1.0):
             raise ValueError(
-                f"agreement_ratio must be between 0.0 and 1.0, "
-                f"got {self.agreement_ratio}"
+                f"agreement_ratio must be between 0.0 and 1.0, " f"got {self.agreement_ratio}"
             )
 
 
@@ -380,9 +377,7 @@ class TagMappingSubmodel:
 
         return collection
 
-    def _create_tag_element(
-        self, tag: DiscoveredTag
-    ) -> model.SubmodelElementCollection:
+    def _create_tag_element(self, tag: DiscoveredTag) -> model.SubmodelElementCollection:
         """Create a SubmodelElementCollection for a single tag.
 
         Args:

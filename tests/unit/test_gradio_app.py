@@ -22,6 +22,7 @@ class TestGradioAppCreation:
 
             # Verify it's a Gradio Blocks instance
             import gradio as gr
+
             assert isinstance(app, gr.Blocks)
 
     def test_create_dashboard_has_title(self) -> None:
@@ -285,9 +286,7 @@ class TestAPIClient:
             mock_response.status_code = 200
             mock_response.json.return_value = {"data": "test"}
 
-            mock_client.return_value.__aenter__ = AsyncMock(
-                return_value=mock_client.return_value
-            )
+            mock_client.return_value.__aenter__ = AsyncMock(return_value=mock_client.return_value)
             mock_client.return_value.__aexit__ = AsyncMock()
             mock_client.return_value.get = AsyncMock(return_value=mock_response)
 

@@ -96,7 +96,9 @@ class PendingPublish:
     """Tracks a pending publish operation."""
 
     topic: str
-    future: asyncio.Future[None] = field(default_factory=lambda: asyncio.get_event_loop().create_future())
+    future: asyncio.Future[None] = field(
+        default_factory=lambda: asyncio.get_event_loop().create_future()
+    )
 
 
 class MQTTClient:

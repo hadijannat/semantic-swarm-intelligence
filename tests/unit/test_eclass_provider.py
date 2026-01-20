@@ -99,13 +99,9 @@ class TestEClassProviderLookup:
         return EClassProvider()
 
     @pytest.mark.asyncio
-    async def test_lookup_returns_none_when_not_found(
-        self, provider: EClassProvider
-    ) -> None:
+    async def test_lookup_returns_none_when_not_found(self, provider: EClassProvider) -> None:
         """Test lookup returns None when concept not found."""
-        with patch.object(
-            provider, "_fetch_concept", new_callable=AsyncMock
-        ) as mock_fetch:
+        with patch.object(provider, "_fetch_concept", new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = None
 
             concept = await provider.lookup("0173-1#99-ZZZZZ#999")
@@ -114,9 +110,7 @@ class TestEClassProviderLookup:
             mock_fetch.assert_called_once_with("0173-1#99-ZZZZZ#999")
 
     @pytest.mark.asyncio
-    async def test_lookup_returns_concept_when_found(
-        self, provider: EClassProvider
-    ) -> None:
+    async def test_lookup_returns_concept_when_found(self, provider: EClassProvider) -> None:
         """Test lookup returns concept when found."""
         expected_concept = DictionaryConcept(
             irdi="0173-1#02-AAB663#001",
@@ -125,9 +119,7 @@ class TestEClassProviderLookup:
             source="eclass",
         )
 
-        with patch.object(
-            provider, "_fetch_concept", new_callable=AsyncMock
-        ) as mock_fetch:
+        with patch.object(provider, "_fetch_concept", new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = expected_concept
 
             concept = await provider.lookup("0173-1#02-AAB663#001")
@@ -146,9 +138,7 @@ class TestEClassProviderLookup:
         )
         provider._cache["0173-1#02-AAB663#001"] = (cached_concept, float("inf"))
 
-        with patch.object(
-            provider, "_fetch_concept", new_callable=AsyncMock
-        ) as mock_fetch:
+        with patch.object(provider, "_fetch_concept", new_callable=AsyncMock) as mock_fetch:
             concept = await provider.lookup("0173-1#02-AAB663#001")
 
             assert concept is not None
@@ -166,9 +156,7 @@ class TestEClassProviderSearch:
         return EClassProvider()
 
     @pytest.mark.asyncio
-    async def test_search_returns_results(
-        self, provider: EClassProvider
-    ) -> None:
+    async def test_search_returns_results(self, provider: EClassProvider) -> None:
         """Test search returns search results."""
         mock_results = [
             SearchResult(
@@ -181,9 +169,7 @@ class TestEClassProviderSearch:
             )
         ]
 
-        with patch.object(
-            provider, "_search_api", new_callable=AsyncMock
-        ) as mock_search:
+        with patch.object(provider, "_search_api", new_callable=AsyncMock) as mock_search:
             mock_search.return_value = mock_results
 
             results = await provider.search("temperature")
@@ -192,13 +178,9 @@ class TestEClassProviderSearch:
             assert results[0].concept.preferred_name == "Temperature"
 
     @pytest.mark.asyncio
-    async def test_search_respects_max_results(
-        self, provider: EClassProvider
-    ) -> None:
+    async def test_search_respects_max_results(self, provider: EClassProvider) -> None:
         """Test search respects max_results parameter."""
-        with patch.object(
-            provider, "_search_api", new_callable=AsyncMock
-        ) as mock_search:
+        with patch.object(provider, "_search_api", new_callable=AsyncMock) as mock_search:
             mock_search.return_value = []
 
             await provider.search("test", max_results=5)
@@ -206,13 +188,9 @@ class TestEClassProviderSearch:
             mock_search.assert_called_once_with("test", 5)
 
     @pytest.mark.asyncio
-    async def test_search_returns_empty_on_api_failure(
-        self, provider: EClassProvider
-    ) -> None:
+    async def test_search_returns_empty_on_api_failure(self, provider: EClassProvider) -> None:
         """Test search returns empty list on API failure."""
-        with patch.object(
-            provider, "_search_api", new_callable=AsyncMock
-        ) as mock_search:
+        with patch.object(provider, "_search_api", new_callable=AsyncMock) as mock_search:
             mock_search.side_effect = Exception("API error")
 
             results = await provider.search("temperature")
@@ -229,9 +207,7 @@ class TestEClassProviderHierarchy:
         return EClassProvider()
 
     @pytest.mark.asyncio
-    async def test_get_hierarchy_returns_node(
-        self, provider: EClassProvider
-    ) -> None:
+    async def test_get_hierarchy_returns_node(self, provider: EClassProvider) -> None:
         """Test get_hierarchy returns hierarchy node."""
         mock_node = HierarchyNode(
             irdi="0173-1#02-AAB663#001",
@@ -240,9 +216,7 @@ class TestEClassProviderHierarchy:
             depth=1,
         )
 
-        with patch.object(
-            provider, "_fetch_hierarchy", new_callable=AsyncMock
-        ) as mock_fetch:
+        with patch.object(provider, "_fetch_hierarchy", new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = mock_node
 
             node = await provider.get_hierarchy("0173-1#02-AAB663#001")
@@ -255,9 +229,7 @@ class TestEClassProviderHierarchy:
         self, provider: EClassProvider
     ) -> None:
         """Test get_hierarchy returns None when not found."""
-        with patch.object(
-            provider, "_fetch_hierarchy", new_callable=AsyncMock
-        ) as mock_fetch:
+        with patch.object(provider, "_fetch_hierarchy", new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = None
 
             node = await provider.get_hierarchy("0173-1#99-ZZZZZ#999")
@@ -274,13 +246,9 @@ class TestEClassProviderAvailability:
         return EClassProvider()
 
     @pytest.mark.asyncio
-    async def test_is_available_when_api_responds(
-        self, provider: EClassProvider
-    ) -> None:
+    async def test_is_available_when_api_responds(self, provider: EClassProvider) -> None:
         """Test is_available returns True when API responds."""
-        with patch.object(
-            provider, "_check_api_health", new_callable=AsyncMock
-        ) as mock_check:
+        with patch.object(provider, "_check_api_health", new_callable=AsyncMock) as mock_check:
             mock_check.return_value = True
 
             available = await provider.is_available()
@@ -288,13 +256,9 @@ class TestEClassProviderAvailability:
             assert available is True
 
     @pytest.mark.asyncio
-    async def test_is_not_available_when_api_fails(
-        self, provider: EClassProvider
-    ) -> None:
+    async def test_is_not_available_when_api_fails(self, provider: EClassProvider) -> None:
         """Test is_available returns False when API fails."""
-        with patch.object(
-            provider, "_check_api_health", new_callable=AsyncMock
-        ) as mock_check:
+        with patch.object(provider, "_check_api_health", new_callable=AsyncMock) as mock_check:
             mock_check.return_value = False
 
             available = await provider.is_available()
@@ -335,9 +299,7 @@ class TestEClassProviderCaching:
         assert cached is not None
         assert cached.irdi == "0173-1#02-TEST#001"
 
-    def test_cache_returns_none_for_missing(
-        self, provider: EClassProvider
-    ) -> None:
+    def test_cache_returns_none_for_missing(self, provider: EClassProvider) -> None:
         """Test cache returns None for missing keys."""
         cached = provider._get_from_cache("nonexistent")
         assert cached is None
@@ -368,9 +330,7 @@ class TestEClassProviderIRDIMapping:
     async def test_maps_eclass_id_to_irdi(self, provider: EClassProvider) -> None:
         """Test provider can map eCl@ss IDs to IEC 61987 IRDIs."""
         # This tests the cross-reference capability
-        with patch.object(
-            provider, "_fetch_concept", new_callable=AsyncMock
-        ) as mock_fetch:
+        with patch.object(provider, "_fetch_concept", new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = DictionaryConcept(
                 irdi="0173-1#02-AAB663#001",
                 preferred_name="Temperature",

@@ -21,6 +21,7 @@ try:
 
     module = cast(Any, huggingface_hub)
     if not hasattr(module, "HfFolder"):
+
         class HfFolder:
             """Fallback HfFolder stub for gradio imports."""
 
@@ -347,9 +348,7 @@ def create_dashboard(api_url: str = DEFAULT_API_URL) -> gr.Blocks:
                         mapping_payload = await client.fetch("/api/v1/mapping/")
                         discovery_payload = await client.fetch("/api/v1/discovery/status")
 
-                        mapping_data = (
-                            mapping_payload if isinstance(mapping_payload, dict) else {}
-                        )
+                        mapping_data = mapping_payload if isinstance(mapping_payload, dict) else {}
                         discovery_data = (
                             discovery_payload if isinstance(discovery_payload, dict) else {}
                         )
@@ -426,8 +425,7 @@ def create_dashboard(api_url: str = DEFAULT_API_URL) -> gr.Blocks:
                         # Filter by query if provided
                         if query:
                             tags = [
-                                t for t in tags
-                                if query.lower() in t.get("tag_name", "").lower()
+                                t for t in tags if query.lower() in t.get("tag_name", "").lower()
                             ]
 
                         return format_tags_table(tags)

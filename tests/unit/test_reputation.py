@@ -527,9 +527,7 @@ class TestReputationTrackerRecordOutcome:
         """Test recording multiple outcomes."""
         tracker.record_outcome("agent-001", "tag-1", "irdi-a", "irdi-a")  # correct
         tracker.record_outcome("agent-001", "tag-2", "irdi-b", "irdi-c")  # wrong
-        reputation = tracker.record_outcome(
-            "agent-001", "tag-3", "irdi-d", "irdi-d"
-        )  # correct
+        reputation = tracker.record_outcome("agent-001", "tag-3", "irdi-d", "irdi-d")  # correct
 
         assert reputation.total_predictions == 3
         assert reputation.correct_predictions == 2
@@ -613,9 +611,7 @@ class TestReputationTrackerGetAllReputations:
         reputations = tracker.get_all_reputations()
         assert reputations == {}
 
-    def test_get_all_reputations_multiple_agents(
-        self, tracker: ReputationTracker
-    ) -> None:
+    def test_get_all_reputations_multiple_agents(self, tracker: ReputationTracker) -> None:
         """Test get_all_reputations with multiple agents."""
         tracker.record_outcome("agent-001", "tag-1", "irdi-a", "irdi-a")
         tracker.record_outcome("agent-002", "tag-1", "irdi-b", "irdi-b")

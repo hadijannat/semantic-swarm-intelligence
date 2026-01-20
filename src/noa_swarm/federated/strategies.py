@@ -78,17 +78,11 @@ class DPConfig:
     def __post_init__(self) -> None:
         """Validate configuration parameters."""
         if self.noise_multiplier <= 0:
-            raise ValueError(
-                f"noise_multiplier must be positive, got {self.noise_multiplier}"
-            )
+            raise ValueError(f"noise_multiplier must be positive, got {self.noise_multiplier}")
         if self.max_grad_norm <= 0:
-            raise ValueError(
-                f"max_grad_norm must be positive, got {self.max_grad_norm}"
-            )
+            raise ValueError(f"max_grad_norm must be positive, got {self.max_grad_norm}")
         if not (0.0 < self.target_delta < 1.0):
-            raise ValueError(
-                f"target_delta must be in (0, 1), got {self.target_delta}"
-            )
+            raise ValueError(f"target_delta must be in (0, 1), got {self.target_delta}")
 
 
 def clip_gradients(
@@ -341,9 +335,7 @@ class DPFedProxStrategy(FedAvg):
                 metrics["dp_enabled"] = True
         else:
             # DP disabled - standard aggregation
-            aggregated_parameters, metrics = super().aggregate_fit(
-                server_round, results, failures
-            )
+            aggregated_parameters, metrics = super().aggregate_fit(server_round, results, failures)
             metrics["dp_enabled"] = False
 
         return aggregated_parameters, metrics

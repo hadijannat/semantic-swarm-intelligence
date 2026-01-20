@@ -389,9 +389,7 @@ class CMAPSSDataset:
                 return sensor
         return None
 
-    def get_sensor_by_index(
-        self, sensor_type: str, index: int
-    ) -> CMAPSSSensor | None:
+    def get_sensor_by_index(self, sensor_type: str, index: int) -> CMAPSSSensor | None:
         """Find a sensor by its type and index.
 
         Args:
@@ -521,9 +519,7 @@ class CMAPSSDataset:
 
     def load_all(
         self,
-    ) -> tuple[
-        NDArray[np.floating[Any]], NDArray[np.floating[Any]], NDArray[np.floating[Any]]
-    ]:
+    ) -> tuple[NDArray[np.floating[Any]], NDArray[np.floating[Any]], NDArray[np.floating[Any]]]:
         """Load all data files for the subset.
 
         Returns:

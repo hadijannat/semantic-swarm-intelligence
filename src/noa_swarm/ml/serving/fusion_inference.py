@@ -256,7 +256,9 @@ class FusionInferenceEngine:
                 model.load_state_dict(state_dict)
                 logger.info("Loaded fusion checkpoint", path=str(checkpoint_path))
             except RuntimeError as exc:
-                logger.warning("Fusion checkpoint incompatible; using default weights", error=str(exc))
+                logger.warning(
+                    "Fusion checkpoint incompatible; using default weights", error=str(exc)
+                )
 
         model.to(self._device)
         model.eval()
@@ -326,7 +328,12 @@ class FusionInferenceEngine:
         """Infer semantic mappings for a list of tags."""
         if not tags:
             return []
-        if not self._ready or self._charcnn is None or self._tokenizer is None or self._fusion is None:
+        if (
+            not self._ready
+            or self._charcnn is None
+            or self._tokenizer is None
+            or self._fusion is None
+        ):
             raise RuntimeError("Fusion inference engine is not ready")
 
         await self._ensure_retriever()
@@ -358,9 +365,7 @@ class FusionInferenceEngine:
 
         retriever_results = None
         if self._retriever is not None:
-            retriever_results = self._retriever.retrieve_batch(
-                embeddings, top_k=self._config.top_k
-            )
+            retriever_results = self._retriever.retrieve_batch(embeddings, top_k=self._config.top_k)
 
         hypotheses: list[Hypothesis] = []
         for idx, tag in enumerate(tags):
@@ -413,7 +418,9 @@ class FusionInferenceEngine:
             confidence = float(prop_conf)
             if confidence < self._config.min_confidence:
                 continue
-            reasoning = f"property={prop_name} ({confidence:.2f}), role={role_name} ({role_conf:.2f})"
+            reasoning = (
+                f"property={prop_name} ({confidence:.2f}), role={role_name} ({role_conf:.2f})"
+            )
             candidates[irdi] = Candidate(
                 irdi=irdi,
                 confidence=confidence,

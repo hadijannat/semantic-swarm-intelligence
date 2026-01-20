@@ -85,21 +85,15 @@ class FedProxServerConfig:
         if self.num_rounds < 1:
             raise ValueError(f"num_rounds must be >= 1, got {self.num_rounds}")
         if self.min_fit_clients < 1:
-            raise ValueError(
-                f"min_fit_clients must be >= 1, got {self.min_fit_clients}"
-            )
+            raise ValueError(f"min_fit_clients must be >= 1, got {self.min_fit_clients}")
         if self.min_evaluate_clients < 1:
-            raise ValueError(
-                f"min_evaluate_clients must be >= 1, got {self.min_evaluate_clients}"
-            )
+            raise ValueError(f"min_evaluate_clients must be >= 1, got {self.min_evaluate_clients}")
         if self.min_available_clients < 1:
             raise ValueError(
                 f"min_available_clients must be >= 1, got {self.min_available_clients}"
             )
         if not (0.0 < self.fraction_fit <= 1.0):
-            raise ValueError(
-                f"fraction_fit must be in (0.0, 1.0], got {self.fraction_fit}"
-            )
+            raise ValueError(f"fraction_fit must be in (0.0, 1.0], got {self.fraction_fit}")
         if not (0.0 < self.fraction_evaluate <= 1.0):
             raise ValueError(
                 f"fraction_evaluate must be in (0.0, 1.0], got {self.fraction_evaluate}"
@@ -194,9 +188,7 @@ class FedProxStrategy(FedAvg):
             return None, {}
 
         # Perform weighted aggregation (FedAvg style)
-        aggregated_parameters, metrics = super().aggregate_fit(
-            server_round, results, failures
-        )
+        aggregated_parameters, metrics = super().aggregate_fit(server_round, results, failures)
 
         if aggregated_parameters is not None:
             # Update round and version tracking
@@ -252,18 +244,14 @@ class FedProxStrategy(FedAvg):
 
         # Compute weighted average loss
         total_examples = sum(eval_res.num_examples for _, eval_res in results)
-        weighted_loss = sum(
-            eval_res.loss * eval_res.num_examples for _, eval_res in results
-        )
+        weighted_loss = sum(eval_res.loss * eval_res.num_examples for _, eval_res in results)
         loss_aggregated = weighted_loss / total_examples if total_examples > 0 else 0.0
 
         # Aggregate accuracy if available
         accuracies: list[float] = []
         for _, eval_res in results:
             raw_accuracy = eval_res.metrics.get("accuracy", 0.0)
-            accuracy_value = (
-                float(raw_accuracy) if isinstance(raw_accuracy, int | float) else 0.0
-            )
+            accuracy_value = float(raw_accuracy) if isinstance(raw_accuracy, int | float) else 0.0
             accuracies.append(accuracy_value * eval_res.num_examples)
         weighted_accuracy = sum(accuracies) / total_examples if total_examples > 0 else 0.0
 

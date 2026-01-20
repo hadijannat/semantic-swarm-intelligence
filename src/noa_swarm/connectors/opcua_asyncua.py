@@ -118,7 +118,9 @@ class OPCUABrowser:
         await self.connect()
         return self
 
-    async def __aexit__(self, exc_type: type | None, exc_val: Exception | None, exc_tb: object) -> None:
+    async def __aexit__(
+        self, exc_type: type | None, exc_val: Exception | None, exc_tb: object
+    ) -> None:
         """Exit async context manager and disconnect from server."""
         await self.disconnect()
 
@@ -142,9 +144,7 @@ class OPCUABrowser:
             # Configure authentication if credentials provided
             if self._settings.username:
                 password = (
-                    self._settings.password.get_secret_value()
-                    if self._settings.password
-                    else ""
+                    self._settings.password.get_secret_value() if self._settings.password else ""
                 )
                 self._client.set_user(self._settings.username)
                 self._client.set_password(password)
@@ -176,8 +176,12 @@ class OPCUABrowser:
         mode = mode_map.get(self._settings.security_mode)
 
         if policy and mode:
-            cert_path = str(self._settings.certificate_path) if self._settings.certificate_path else None
-            key_path = str(self._settings.private_key_path) if self._settings.private_key_path else None
+            cert_path = (
+                str(self._settings.certificate_path) if self._settings.certificate_path else None
+            )
+            key_path = (
+                str(self._settings.private_key_path) if self._settings.private_key_path else None
+            )
             await self._client.set_security(policy, cert_path, key_path, mode=mode)
 
     async def disconnect(self) -> None:

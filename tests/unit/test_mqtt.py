@@ -246,7 +246,9 @@ class TestMQTTClientPublish:
 
         await client.publish("test/topic", b"test payload", qos=0)
 
-        mock_paho.publish.assert_called_once_with("test/topic", b"test payload", qos=0, retain=False)
+        mock_paho.publish.assert_called_once_with(
+            "test/topic", b"test payload", qos=0, retain=False
+        )
 
     @pytest.mark.asyncio
     async def test_publish_string_payload(self) -> None:

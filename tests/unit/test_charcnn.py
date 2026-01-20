@@ -194,9 +194,7 @@ class TestCharCNN:
         assert outputs["irdi_embedding"].shape == (2, model.config.irdi_embedding_dim)
         assert outputs["features"].shape == (2, model.config.hidden_dim)
 
-    def test_forward_with_embeddings(
-        self, model: CharCNN, tokenizer: CharacterTokenizer
-    ) -> None:
+    def test_forward_with_embeddings(self, model: CharCNN, tokenizer: CharacterTokenizer) -> None:
         """Test forward pass with embedding normalization."""
         tags = ["FIC-101"]
         x = tokenizer.encode_batch(tags)
@@ -232,9 +230,7 @@ class TestCharCNN:
             atol=1e-5,
         )
 
-    def test_single_sample_forward(
-        self, model: CharCNN, tokenizer: CharacterTokenizer
-    ) -> None:
+    def test_single_sample_forward(self, model: CharCNN, tokenizer: CharacterTokenizer) -> None:
         """Test forward pass with single sample."""
         x = tokenizer.encode("FIC-101").unsqueeze(0)  # Add batch dim
 
@@ -297,7 +293,9 @@ class TestLabelMappings:
     def test_get_property_class_from_category(self) -> None:
         """Test category to property class mapping."""
         assert get_property_class_from_category("flow_rate") == 0
-        assert get_property_class_from_category("temperature") == PROPERTY_CLASSES.index("temperature")
+        assert get_property_class_from_category("temperature") == PROPERTY_CLASSES.index(
+            "temperature"
+        )
 
         # Test variations
         assert get_property_class_from_category("flow_rate_volumetric") == 0
@@ -527,14 +525,15 @@ class TestTrainingIntegration:
 
         # Prepare data
         inputs = tokenizer.encode_batch([s.tag_name for s in samples])
-        property_targets = torch.tensor([
-            get_property_class_from_category(s.features.get("category", "unknown"))
-            for s in samples
-        ])
-        signal_targets = torch.tensor([
-            get_signal_role_from_prefix(s.features.get("prefix", ""))
-            for s in samples
-        ])
+        property_targets = torch.tensor(
+            [
+                get_property_class_from_category(s.features.get("category", "unknown"))
+                for s in samples
+            ]
+        )
+        signal_targets = torch.tensor(
+            [get_signal_role_from_prefix(s.features.get("prefix", "")) for s in samples]
+        )
 
         # Forward pass
         outputs = model(inputs)

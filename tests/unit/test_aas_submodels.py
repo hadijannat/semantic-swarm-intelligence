@@ -272,21 +272,21 @@ class TestTagMappingSubmodel:
         submodel = TagMappingSubmodel()
 
         # Add various tags with different statuses
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TAG-001", browse_path="/a", status=MappingStatus.PENDING
-        ))
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TAG-002", browse_path="/b", status=MappingStatus.MAPPED
-        ))
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TAG-003", browse_path="/c", status=MappingStatus.MAPPED
-        ))
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TAG-004", browse_path="/d", status=MappingStatus.VERIFIED
-        ))
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TAG-005", browse_path="/e", status=MappingStatus.CONFLICT
-        ))
+        submodel.add_tag(
+            DiscoveredTag(tag_name="TAG-001", browse_path="/a", status=MappingStatus.PENDING)
+        )
+        submodel.add_tag(
+            DiscoveredTag(tag_name="TAG-002", browse_path="/b", status=MappingStatus.MAPPED)
+        )
+        submodel.add_tag(
+            DiscoveredTag(tag_name="TAG-003", browse_path="/c", status=MappingStatus.MAPPED)
+        )
+        submodel.add_tag(
+            DiscoveredTag(tag_name="TAG-004", browse_path="/d", status=MappingStatus.VERIFIED)
+        )
+        submodel.add_tag(
+            DiscoveredTag(tag_name="TAG-005", browse_path="/e", status=MappingStatus.CONFLICT)
+        )
 
         stats = submodel.get_statistics()
 
@@ -300,15 +300,15 @@ class TestTagMappingSubmodel:
         """Test filtering tags by status."""
         submodel = TagMappingSubmodel()
 
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TAG-001", browse_path="/a", status=MappingStatus.PENDING
-        ))
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TAG-002", browse_path="/b", status=MappingStatus.MAPPED
-        ))
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TAG-003", browse_path="/c", status=MappingStatus.MAPPED
-        ))
+        submodel.add_tag(
+            DiscoveredTag(tag_name="TAG-001", browse_path="/a", status=MappingStatus.PENDING)
+        )
+        submodel.add_tag(
+            DiscoveredTag(tag_name="TAG-002", browse_path="/b", status=MappingStatus.MAPPED)
+        )
+        submodel.add_tag(
+            DiscoveredTag(tag_name="TAG-003", browse_path="/c", status=MappingStatus.MAPPED)
+        )
 
         mapped = submodel.filter_by_status(MappingStatus.MAPPED)
         assert len(mapped) == 2
@@ -321,16 +321,19 @@ class TestTagMappingSubmodel:
         submodel = TagMappingSubmodel(
             submodel_id="urn:test:submodel:1",
         )
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TIC-101.PV",
-            browse_path="/Objects/TIC-101/PV",
-            irdi="0173-1#02-AAB663#001",
-            status=MappingStatus.MAPPED,
-        ))
+        submodel.add_tag(
+            DiscoveredTag(
+                tag_name="TIC-101.PV",
+                browse_path="/Objects/TIC-101/PV",
+                irdi="0173-1#02-AAB663#001",
+                status=MappingStatus.MAPPED,
+            )
+        )
 
         basyx_sm = submodel.to_basyx_submodel()
 
         # Should return a BaSyx Submodel object
         from basyx.aas.model import Submodel
+
         assert isinstance(basyx_sm, Submodel)
         assert str(basyx_sm.id) == "urn:test:submodel:1"

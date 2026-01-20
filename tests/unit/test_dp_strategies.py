@@ -117,8 +117,8 @@ class TestGradientClipping:
     def test_clip_gradients_handles_multiple_arrays(self) -> None:
         """Test clipping works with multiple gradient arrays."""
         gradients = [
-            np.array([3.0, 4.0]),   # norm = 5
-            np.array([0.1, 0.1]),   # norm = 0.14
+            np.array([3.0, 4.0]),  # norm = 5
+            np.array([0.1, 0.1]),  # norm = 0.14
         ]
         max_norm = 1.0
 
@@ -240,9 +240,7 @@ class TestDPFedProxStrategy:
         assert hasattr(strategy, "epsilon_spent")
         assert strategy.epsilon_spent == 0.0
 
-    def test_aggregate_fit_with_dp_enabled(
-        self, strategy: DPFedProxStrategy
-    ) -> None:
+    def test_aggregate_fit_with_dp_enabled(self, strategy: DPFedProxStrategy) -> None:
         """Test aggregate_fit applies DP when enabled."""
         from flwr.common import (
             Code,

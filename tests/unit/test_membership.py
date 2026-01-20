@@ -303,7 +303,9 @@ class TestSwarmMembershipLifecycle:
         )
 
         # Mock SWIM components to avoid actual network operations
-        with patch("noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock):
+        with patch(
+            "noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock
+        ):
             with patch(
                 "noa_swarm.swarm.membership.SwarmMembership._sync_members", new_callable=AsyncMock
             ):
@@ -325,7 +327,9 @@ class TestSwarmMembershipLifecycle:
             port=7946,
         )
 
-        with patch("noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock):
+        with patch(
+            "noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock
+        ):
             with patch(
                 "noa_swarm.swarm.membership.SwarmMembership._sync_members", new_callable=AsyncMock
             ):
@@ -358,7 +362,9 @@ class TestSwarmMembershipLifecycle:
             port=7946,
         )
 
-        with patch("noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock):
+        with patch(
+            "noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock
+        ):
             with patch(
                 "noa_swarm.swarm.membership.SwarmMembership._sync_members", new_callable=AsyncMock
             ):
@@ -371,7 +377,9 @@ class TestSwarmMembershipLifecycle:
     @pytest.mark.asyncio
     async def test_context_manager(self) -> None:
         """Test using SwarmMembership as async context manager."""
-        with patch("noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock):
+        with patch(
+            "noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock
+        ):
             with patch(
                 "noa_swarm.swarm.membership.SwarmMembership._sync_members", new_callable=AsyncMock
             ):
@@ -479,7 +487,9 @@ class TestSwarmMembershipMetadata:
     @pytest.mark.asyncio
     async def test_set_metadata_after_start(self) -> None:
         """Test setting metadata after starting updates local member."""
-        with patch("noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock):
+        with patch(
+            "noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock
+        ):
             with patch(
                 "noa_swarm.swarm.membership.SwarmMembership._sync_members", new_callable=AsyncMock
             ):
@@ -696,7 +706,9 @@ class TestSwarmMembershipJoin:
     @pytest.mark.asyncio
     async def test_join_empty_seeds(self) -> None:
         """Test that join() with empty seeds logs warning."""
-        with patch("noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock):
+        with patch(
+            "noa_swarm.swarm.membership.SwarmMembership._run_worker", new_callable=AsyncMock
+        ):
             with patch(
                 "noa_swarm.swarm.membership.SwarmMembership._sync_members", new_callable=AsyncMock
             ):

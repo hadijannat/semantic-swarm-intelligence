@@ -67,9 +67,7 @@ class EClassConfig:
         if self.cache_ttl < 0:
             raise ValueError(f"cache_ttl must be non-negative, got {self.cache_ttl}")
         if self.max_cache_size <= 0:
-            raise ValueError(
-                f"max_cache_size must be positive, got {self.max_cache_size}"
-            )
+            raise ValueError(f"max_cache_size must be positive, got {self.max_cache_size}")
 
 
 class EClassProvider(DictionaryProvider):
@@ -240,10 +238,7 @@ class EClassProvider(DictionaryProvider):
         # Map eCl@ss fields to our concept structure
         # eCl@ss may use different field names
         preferred_name = (
-            data.get("preferredName")
-            or data.get("name")
-            or data.get("label")
-            or "Unknown"
+            data.get("preferredName") or data.get("name") or data.get("label") or "Unknown"
         )
 
         return DictionaryConcept(

@@ -564,9 +564,7 @@ class TagGraphDataset(Dataset):  # type: ignore[misc]
             edge_sources: list[torch.Tensor] = []
 
             if include_hierarchy_edges:
-                hierarchy_edges, _ = build_hierarchy_edges(
-                    self.tag_records, self._node_id_to_idx
-                )
+                hierarchy_edges, _ = build_hierarchy_edges(self.tag_records, self._node_id_to_idx)
                 edge_sources.append(hierarchy_edges)
 
             if include_correlation_edges and time_series_data is not None:

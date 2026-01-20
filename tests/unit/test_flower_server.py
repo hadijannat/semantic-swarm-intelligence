@@ -195,6 +195,7 @@ class TestFedProxAggregation:
 
         assert aggregated is not None
         from flwr.common import parameters_to_ndarrays
+
         agg_params = parameters_to_ndarrays(aggregated)
 
         # Check weighted average
@@ -228,9 +229,7 @@ class TestFedProxAggregation:
 
         assert strategy.current_round == initial_round + 1
 
-    def test_aggregate_fit_increments_model_version(
-        self, strategy: FedProxStrategy
-    ) -> None:
+    def test_aggregate_fit_increments_model_version(self, strategy: FedProxStrategy) -> None:
         """Test that aggregate_fit increments model_version."""
         from flwr.common import (
             Code,
@@ -257,9 +256,7 @@ class TestFedProxAggregation:
 
         assert strategy.model_version == initial_version + 1
 
-    def test_aggregate_fit_handles_empty_results(
-        self, strategy: FedProxStrategy
-    ) -> None:
+    def test_aggregate_fit_handles_empty_results(self, strategy: FedProxStrategy) -> None:
         """Test that aggregate_fit handles empty results gracefully."""
         results = []
         failures = []
@@ -268,9 +265,7 @@ class TestFedProxAggregation:
 
         assert aggregated is None
 
-    def test_aggregate_evaluate_computes_weighted_loss(
-        self, strategy: FedProxStrategy
-    ) -> None:
+    def test_aggregate_evaluate_computes_weighted_loss(self, strategy: FedProxStrategy) -> None:
         """Test that aggregate_evaluate computes weighted loss correctly."""
         from flwr.common import (
             Code,
@@ -349,8 +344,6 @@ class TestServerFactory:
         config = FedProxServerConfig()
         initial_params = [np.array([1.0, 2.0, 3.0])]
 
-        server_config, strategy = create_fedprox_server(
-            config, initial_parameters=initial_params
-        )
+        server_config, strategy = create_fedprox_server(config, initial_parameters=initial_params)
 
         assert strategy.initial_parameters is not None

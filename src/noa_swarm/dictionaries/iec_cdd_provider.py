@@ -66,9 +66,7 @@ class IECCDDConfig:
         if self.cache_ttl < 0:
             raise ValueError(f"cache_ttl must be non-negative, got {self.cache_ttl}")
         if self.max_cache_size <= 0:
-            raise ValueError(
-                f"max_cache_size must be positive, got {self.max_cache_size}"
-            )
+            raise ValueError(f"max_cache_size must be positive, got {self.max_cache_size}")
 
 
 class IECCDDProvider(DictionaryProvider):

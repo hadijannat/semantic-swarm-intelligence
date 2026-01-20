@@ -169,9 +169,7 @@ class TestSemanticAgentInit:
         assert agent.state == AgentState.INITIALIZING
         assert not agent.is_running
 
-    def test_init_with_injected_dependencies(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    def test_init_with_injected_dependencies(self, config: SemanticAgentConfig) -> None:
         """Test initialization with injected dependencies."""
         mock_consensus = MagicMock()
         mock_reputation = MagicMock()
@@ -234,10 +232,11 @@ class TestSemanticAgentLifecycle:
         agent = SemanticAgent(config, **mock_dependencies)
 
         # Mock the internal components to prevent actual connections
-        with patch.object(agent, "_connect_mqtt", new_callable=AsyncMock), \
-             patch.object(agent, "_connect_opcua", new_callable=AsyncMock), \
-             patch.object(agent, "_start_gossip", new_callable=AsyncMock), \
-             patch.object(agent, "_run_lifecycle_loop", new_callable=AsyncMock):
+        with patch.object(agent, "_connect_mqtt", new_callable=AsyncMock), patch.object(
+            agent, "_connect_opcua", new_callable=AsyncMock
+        ), patch.object(agent, "_start_gossip", new_callable=AsyncMock), patch.object(
+            agent, "_run_lifecycle_loop", new_callable=AsyncMock
+        ):
             await agent.start()
 
             assert agent.state == AgentState.RUNNING
@@ -250,10 +249,11 @@ class TestSemanticAgentLifecycle:
         """Test that start() when already running logs warning."""
         agent = SemanticAgent(config, **mock_dependencies)
 
-        with patch.object(agent, "_connect_mqtt", new_callable=AsyncMock), \
-             patch.object(agent, "_connect_opcua", new_callable=AsyncMock), \
-             patch.object(agent, "_start_gossip", new_callable=AsyncMock), \
-             patch.object(agent, "_run_lifecycle_loop", new_callable=AsyncMock):
+        with patch.object(agent, "_connect_mqtt", new_callable=AsyncMock), patch.object(
+            agent, "_connect_opcua", new_callable=AsyncMock
+        ), patch.object(agent, "_start_gossip", new_callable=AsyncMock), patch.object(
+            agent, "_run_lifecycle_loop", new_callable=AsyncMock
+        ):
             await agent.start()
             # Second start should not raise but should be a no-op
             await agent.start()  # Should not raise
@@ -267,13 +267,13 @@ class TestSemanticAgentLifecycle:
         """Test that stop() transitions through STOPPING to STOPPED."""
         agent = SemanticAgent(config, **mock_dependencies)
 
-        with patch.object(agent, "_connect_mqtt", new_callable=AsyncMock), \
-             patch.object(agent, "_connect_opcua", new_callable=AsyncMock), \
-             patch.object(agent, "_start_gossip", new_callable=AsyncMock), \
-             patch.object(agent, "_run_lifecycle_loop", new_callable=AsyncMock), \
-             patch.object(agent, "_disconnect_mqtt", new_callable=AsyncMock), \
-             patch.object(agent, "_disconnect_opcua", new_callable=AsyncMock), \
-             patch.object(agent, "_stop_gossip", new_callable=AsyncMock):
+        with patch.object(agent, "_connect_mqtt", new_callable=AsyncMock), patch.object(
+            agent, "_connect_opcua", new_callable=AsyncMock
+        ), patch.object(agent, "_start_gossip", new_callable=AsyncMock), patch.object(
+            agent, "_run_lifecycle_loop", new_callable=AsyncMock
+        ), patch.object(agent, "_disconnect_mqtt", new_callable=AsyncMock), patch.object(
+            agent, "_disconnect_opcua", new_callable=AsyncMock
+        ), patch.object(agent, "_stop_gossip", new_callable=AsyncMock):
             await agent.start()
             await agent.stop()
 
@@ -298,13 +298,13 @@ class TestSemanticAgentLifecycle:
         """Test that stop() cancels running tasks."""
         agent = SemanticAgent(config, **mock_dependencies)
 
-        with patch.object(agent, "_connect_mqtt", new_callable=AsyncMock), \
-             patch.object(agent, "_connect_opcua", new_callable=AsyncMock), \
-             patch.object(agent, "_start_gossip", new_callable=AsyncMock), \
-             patch.object(agent, "_run_lifecycle_loop", new_callable=AsyncMock), \
-             patch.object(agent, "_disconnect_mqtt", new_callable=AsyncMock), \
-             patch.object(agent, "_disconnect_opcua", new_callable=AsyncMock), \
-             patch.object(agent, "_stop_gossip", new_callable=AsyncMock):
+        with patch.object(agent, "_connect_mqtt", new_callable=AsyncMock), patch.object(
+            agent, "_connect_opcua", new_callable=AsyncMock
+        ), patch.object(agent, "_start_gossip", new_callable=AsyncMock), patch.object(
+            agent, "_run_lifecycle_loop", new_callable=AsyncMock
+        ), patch.object(agent, "_disconnect_mqtt", new_callable=AsyncMock), patch.object(
+            agent, "_disconnect_opcua", new_callable=AsyncMock
+        ), patch.object(agent, "_stop_gossip", new_callable=AsyncMock):
             await agent.start()
 
             # Create a real asyncio task that will be cancelled
@@ -387,9 +387,7 @@ class TestSemanticAgentDiscovery:
         assert health["last_discovery_time"] is not None
 
     @pytest.mark.asyncio
-    async def test_discover_tags_handles_empty_result(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    async def test_discover_tags_handles_empty_result(self, config: SemanticAgentConfig) -> None:
         """Test that discover_tags handles empty results."""
         agent = SemanticAgent(config)
 
@@ -487,9 +485,7 @@ class TestSemanticAgentInference:
         assert health["last_inference_time"] is not None
 
     @pytest.mark.asyncio
-    async def test_infer_mappings_handles_empty_tags(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    async def test_infer_mappings_handles_empty_tags(self, config: SemanticAgentConfig) -> None:
         """Test that infer_mappings handles empty tag list."""
         mock_inference = MagicMock()
         mock_inference.infer = MagicMock(return_value=[])
@@ -573,9 +569,7 @@ class TestSemanticAgentGossip:
         assert health["last_gossip_time"] is not None
 
     @pytest.mark.asyncio
-    async def test_gossip_hypotheses_handles_empty_list(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    async def test_gossip_hypotheses_handles_empty_list(self, config: SemanticAgentConfig) -> None:
         """Test that gossip_hypotheses handles empty list."""
         agent = SemanticAgent(config)
 
@@ -602,9 +596,7 @@ class TestSemanticAgentVoting:
         )
 
     @pytest.mark.asyncio
-    async def test_vote_on_tags_broadcasts_votes(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    async def test_vote_on_tags_broadcasts_votes(self, config: SemanticAgentConfig) -> None:
         """Test that vote_on_tags broadcasts votes via gossip."""
         agent = SemanticAgent(config)
 
@@ -637,9 +629,7 @@ class TestSemanticAgentVoting:
         mock_gossip.broadcast_vote.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_vote_on_tags_updates_metrics(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    async def test_vote_on_tags_updates_metrics(self, config: SemanticAgentConfig) -> None:
         """Test that vote_on_tags updates health metrics."""
         agent = SemanticAgent(config)
 
@@ -738,9 +728,7 @@ class TestSemanticAgentCommit:
         mock_gossip.broadcast_consensus.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_commit_mappings_handles_empty_list(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    async def test_commit_mappings_handles_empty_list(self, config: SemanticAgentConfig) -> None:
         """Test that commit_mappings handles empty list."""
         agent = SemanticAgent(config)
 
@@ -769,9 +757,7 @@ class TestSemanticAgentHealthCheck:
 
         assert isinstance(health, dict)
 
-    def test_health_check_includes_agent_id(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    def test_health_check_includes_agent_id(self, config: SemanticAgentConfig) -> None:
         """Test that health_check includes agent_id."""
         agent = SemanticAgent(config)
 
@@ -787,9 +773,7 @@ class TestSemanticAgentHealthCheck:
 
         assert health["state"] == AgentState.INITIALIZING.value
 
-    def test_health_check_includes_metrics(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    def test_health_check_includes_metrics(self, config: SemanticAgentConfig) -> None:
         """Test that health_check includes all metrics."""
         agent = SemanticAgent(config)
 
@@ -806,9 +790,7 @@ class TestSemanticAgentHealthCheck:
         assert "last_inference_time" in health
         assert "last_gossip_time" in health
 
-    def test_health_check_initial_counts_are_zero(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    def test_health_check_initial_counts_are_zero(self, config: SemanticAgentConfig) -> None:
         """Test that initial metric counts are zero."""
         agent = SemanticAgent(config)
 
@@ -818,9 +800,7 @@ class TestSemanticAgentHealthCheck:
         assert health["hypotheses_generated"] == 0
         assert health["votes_cast"] == 0
 
-    def test_health_check_initial_times_are_none(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    def test_health_check_initial_times_are_none(self, config: SemanticAgentConfig) -> None:
         """Test that initial timestamps are None."""
         agent = SemanticAgent(config)
 
@@ -850,8 +830,9 @@ class TestSemanticAgentContextManager:
         """Test that async context manager starts and stops agent."""
         agent = SemanticAgent(config)
 
-        with patch.object(agent, "start", new_callable=AsyncMock) as mock_start, \
-             patch.object(agent, "stop", new_callable=AsyncMock) as mock_stop:
+        with patch.object(agent, "start", new_callable=AsyncMock) as mock_start, patch.object(
+            agent, "stop", new_callable=AsyncMock
+        ) as mock_stop:
             async with agent:
                 mock_start.assert_called_once()
 
@@ -864,8 +845,9 @@ class TestSemanticAgentContextManager:
         """Test that async context manager stops even on exception."""
         agent = SemanticAgent(config)
 
-        with patch.object(agent, "start", new_callable=AsyncMock), \
-             patch.object(agent, "stop", new_callable=AsyncMock) as mock_stop:
+        with patch.object(agent, "start", new_callable=AsyncMock), patch.object(
+            agent, "stop", new_callable=AsyncMock
+        ) as mock_stop:
             try:
                 async with agent:
                     raise ValueError("Test exception")
@@ -889,9 +871,7 @@ class TestSemanticAgentGracefulShutdown:
         )
 
     @pytest.mark.asyncio
-    async def test_graceful_shutdown_disconnects_mqtt(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    async def test_graceful_shutdown_disconnects_mqtt(self, config: SemanticAgentConfig) -> None:
         """Test that graceful shutdown disconnects from MQTT."""
         agent = SemanticAgent(config)
 
@@ -900,16 +880,15 @@ class TestSemanticAgentGracefulShutdown:
         agent._mqtt_client = mock_mqtt
         agent._state = AgentState.RUNNING
 
-        with patch.object(agent, "_disconnect_opcua", new_callable=AsyncMock), \
-             patch.object(agent, "_stop_gossip", new_callable=AsyncMock):
+        with patch.object(agent, "_disconnect_opcua", new_callable=AsyncMock), patch.object(
+            agent, "_stop_gossip", new_callable=AsyncMock
+        ):
             await agent.stop()
 
         mock_mqtt.disconnect.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_graceful_shutdown_respects_timeout(
-        self, config: SemanticAgentConfig
-    ) -> None:
+    async def test_graceful_shutdown_respects_timeout(self, config: SemanticAgentConfig) -> None:
         """Test that shutdown respects timeout."""
         agent = SemanticAgent(config)
         agent._state = AgentState.RUNNING
@@ -918,9 +897,9 @@ class TestSemanticAgentGracefulShutdown:
         slow_task = asyncio.create_task(asyncio.sleep(10))
         agent._lifecycle_task = slow_task
 
-        with patch.object(agent, "_disconnect_mqtt", new_callable=AsyncMock), \
-             patch.object(agent, "_disconnect_opcua", new_callable=AsyncMock), \
-             patch.object(agent, "_stop_gossip", new_callable=AsyncMock):
+        with patch.object(agent, "_disconnect_mqtt", new_callable=AsyncMock), patch.object(
+            agent, "_disconnect_opcua", new_callable=AsyncMock
+        ), patch.object(agent, "_stop_gossip", new_callable=AsyncMock):
             # Should complete within timeout (0.5 seconds)
             await asyncio.wait_for(agent.stop(), timeout=2.0)
 

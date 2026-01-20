@@ -60,17 +60,11 @@ class ReputationConfig:
         if self.window_size < 1:
             raise ValueError(f"window_size must be at least 1, got {self.window_size}")
         if not 0.0 <= self.initial_score <= 1.0:
-            raise ValueError(
-                f"initial_score must be between 0.0 and 1.0, got {self.initial_score}"
-            )
+            raise ValueError(f"initial_score must be between 0.0 and 1.0, got {self.initial_score}")
         if not 0.0 <= self.min_score <= 1.0:
-            raise ValueError(
-                f"min_score must be between 0.0 and 1.0, got {self.min_score}"
-            )
+            raise ValueError(f"min_score must be between 0.0 and 1.0, got {self.min_score}")
         if not 0.0 <= self.max_score <= 1.0:
-            raise ValueError(
-                f"max_score must be between 0.0 and 1.0, got {self.max_score}"
-            )
+            raise ValueError(f"max_score must be between 0.0 and 1.0, got {self.max_score}")
         if self.min_score > self.max_score:
             raise ValueError(
                 f"min_score ({self.min_score}) cannot be greater than "
@@ -78,17 +72,13 @@ class ReputationConfig:
             )
         if not 0.0 < self.decay_factor <= 1.0:
             raise ValueError(
-                f"decay_factor must be between 0.0 (exclusive) and 1.0, "
-                f"got {self.decay_factor}"
+                f"decay_factor must be between 0.0 (exclusive) and 1.0, " f"got {self.decay_factor}"
             )
         if self.agreement_bonus < 0:
-            raise ValueError(
-                f"agreement_bonus must be non-negative, got {self.agreement_bonus}"
-            )
+            raise ValueError(f"agreement_bonus must be non-negative, got {self.agreement_bonus}")
         if self.disagreement_penalty < 0:
             raise ValueError(
-                f"disagreement_penalty must be non-negative, "
-                f"got {self.disagreement_penalty}"
+                f"disagreement_penalty must be non-negative, " f"got {self.disagreement_penalty}"
             )
 
 
@@ -155,8 +145,7 @@ class AgentReputation:
             raise ValueError("agent_id cannot be empty")
         if not 0.0 <= self.reliability_score <= 1.0:
             raise ValueError(
-                f"reliability_score must be between 0.0 and 1.0, "
-                f"got {self.reliability_score}"
+                f"reliability_score must be between 0.0 and 1.0, " f"got {self.reliability_score}"
             )
 
     @property
@@ -435,9 +424,7 @@ class ReputationTracker:
         with self._lock:
             for _agent_id, reputation in self._reputations.items():
                 original_count = len(reputation.outcomes)
-                reputation.outcomes = [
-                    o for o in reputation.outcomes if o.timestamp >= cutoff
-                ]
+                reputation.outcomes = [o for o in reputation.outcomes if o.timestamp >= cutoff]
                 pruned = original_count - len(reputation.outcomes)
 
                 if pruned > 0:

@@ -35,7 +35,9 @@ class TestDiscoveryToInferencePipeline:
         ]
 
     def test_charcnn_forward_pass(self, discovered_tags: list[TagRecord]) -> None:
-        config = CharCNNConfig(max_seq_length=32, embedding_dim=32, conv1_channels=32, conv2_channels=32)
+        config = CharCNNConfig(
+            max_seq_length=32, embedding_dim=32, conv1_channels=32, conv2_channels=32
+        )
         model = CharCNN(config)
         tokenizer = CharacterTokenizer(max_length=config.max_seq_length)
 
@@ -69,9 +71,24 @@ class TestInferenceToConsensusPipeline:
         )
 
         votes = [
-            Vote(agent_id="agent-001", candidate_irdi="0173-1#01-AAA001#001", confidence=0.92, reliability_score=0.9),
-            Vote(agent_id="agent-002", candidate_irdi="0173-1#01-AAA001#001", confidence=0.88, reliability_score=0.85),
-            Vote(agent_id="agent-003", candidate_irdi="0173-1#01-AAA001#001", confidence=0.90, reliability_score=0.8),
+            Vote(
+                agent_id="agent-001",
+                candidate_irdi="0173-1#01-AAA001#001",
+                confidence=0.92,
+                reliability_score=0.9,
+            ),
+            Vote(
+                agent_id="agent-002",
+                candidate_irdi="0173-1#01-AAA001#001",
+                confidence=0.88,
+                reliability_score=0.85,
+            ),
+            Vote(
+                agent_id="agent-003",
+                candidate_irdi="0173-1#01-AAA001#001",
+                confidence=0.90,
+                reliability_score=0.8,
+            ),
         ]
 
         engine = ConsensusEngine(ConsensusConfig(min_votes=2))

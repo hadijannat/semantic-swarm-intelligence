@@ -286,8 +286,7 @@ def train_epoch(
 
         if (batch_idx + 1) % log_interval == 0:
             logger.debug(
-                f"  Batch {batch_idx + 1}/{len(train_loader)}, "
-                f"Loss: {loss.item():.4f}"
+                f"  Batch {batch_idx + 1}/{len(train_loader)}, " f"Loss: {loss.item():.4f}"
             )
 
     # Compute epoch metrics
@@ -554,8 +553,7 @@ def train_model(
     )
 
     logger.info(
-        f"Best model at epoch {history.best_epoch} "
-        f"with val loss {history.best_val_loss:.4f}"
+        f"Best model at epoch {history.best_epoch} " f"with val loss {history.best_val_loss:.4f}"
     )
 
     return model, history

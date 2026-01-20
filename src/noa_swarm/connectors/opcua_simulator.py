@@ -18,6 +18,7 @@ from loguru import logger
 if TYPE_CHECKING:
     from asyncua.common.node import Node
 
+
 # ISA-95 Tag Type Definitions
 @dataclass
 class TagDefinition:
@@ -193,7 +194,9 @@ class OPCUASimulator:
         await self.start()
         return self
 
-    async def __aexit__(self, exc_type: type | None, exc_val: Exception | None, exc_tb: object) -> None:
+    async def __aexit__(
+        self, exc_type: type | None, exc_val: Exception | None, exc_tb: object
+    ) -> None:
         """Exit async context manager and stop server."""
         await self.stop()
 

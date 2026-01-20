@@ -262,9 +262,7 @@ class TestConsensusEngineWeightedVote:
             timestamp=datetime.now(UTC),
         )
 
-    def test_compute_weighted_vote(
-        self, engine: ConsensusEngine, fresh_vote: Vote
-    ) -> None:
+    def test_compute_weighted_vote(self, engine: ConsensusEngine, fresh_vote: Vote) -> None:
         """Test computing weighted vote with default config."""
         calibration = 0.95
         reference_time = fresh_vote.timestamp
@@ -320,9 +318,7 @@ class TestConsensusEngineAggregation:
         """Create a reference time for testing."""
         return datetime.now(UTC)
 
-    def test_aggregate_single_vote(
-        self, engine: ConsensusEngine, reference_time: datetime
-    ) -> None:
+    def test_aggregate_single_vote(self, engine: ConsensusEngine, reference_time: datetime) -> None:
         """Test aggregating a single vote."""
         vote = Vote(
             agent_id="agent-001",
@@ -366,9 +362,7 @@ class TestConsensusEngineAggregation:
 
         calibration_factors = {"agent-001": 0.95, "agent-002": 0.90}
 
-        scores, total, weighted = engine.aggregate_votes(
-            votes, calibration_factors, reference_time
-        )
+        scores, total, weighted = engine.aggregate_votes(votes, calibration_factors, reference_time)
 
         assert len(scores) == 1
         assert "0173-1#01-ABA234#001" in scores
@@ -398,9 +392,7 @@ class TestConsensusEngineAggregation:
 
         calibration_factors = {"agent-001": 0.95, "agent-002": 0.90}
 
-        scores, total, weighted = engine.aggregate_votes(
-            votes, calibration_factors, reference_time
-        )
+        scores, total, weighted = engine.aggregate_votes(votes, calibration_factors, reference_time)
 
         assert len(scores) == 2
         assert "0173-1#01-ABA234#001" in scores
@@ -428,9 +420,7 @@ class TestConsensusEngineAggregation:
 
         assert weighted[0].calibration_factor == 0.5
 
-    def test_aggregate_empty_votes(
-        self, engine: ConsensusEngine, reference_time: datetime
-    ) -> None:
+    def test_aggregate_empty_votes(self, engine: ConsensusEngine, reference_time: datetime) -> None:
         """Test aggregating empty vote list."""
         scores, total, weighted = engine.aggregate_votes([], {}, reference_time)
 
@@ -452,9 +442,7 @@ class TestConsensusEngineQuorum:
         """Create a reference time for testing."""
         return datetime.now(UTC)
 
-    def test_hard_quorum(
-        self, engine: ConsensusEngine, reference_time: datetime
-    ) -> None:
+    def test_hard_quorum(self, engine: ConsensusEngine, reference_time: datetime) -> None:
         """Test hard quorum is achieved when proportion >= 0.8."""
         votes = [
             Vote(
@@ -490,9 +478,7 @@ class TestConsensusEngineQuorum:
         assert quorum_type == "hard"
         assert confidence == 1.0
 
-    def test_soft_quorum(
-        self, engine: ConsensusEngine, reference_time: datetime
-    ) -> None:
+    def test_soft_quorum(self, engine: ConsensusEngine, reference_time: datetime) -> None:
         """Test soft quorum is achieved when 0.5 <= proportion < 0.8."""
         votes = [
             Vote(
@@ -521,9 +507,7 @@ class TestConsensusEngineQuorum:
         assert quorum_type == "soft"
         assert confidence == pytest.approx(0.6, rel=0.01)
 
-    def test_conflict_quorum(
-        self, engine: ConsensusEngine, reference_time: datetime
-    ) -> None:
+    def test_conflict_quorum(self, engine: ConsensusEngine, reference_time: datetime) -> None:
         """Test conflict quorum when no IRDI reaches 0.5."""
         votes = [
             Vote(
@@ -563,9 +547,7 @@ class TestConsensusEngineQuorum:
         assert quorum_type == "conflict"
         assert confidence == pytest.approx(0.4, rel=0.01)
 
-    def test_tie_detection(
-        self, engine: ConsensusEngine, reference_time: datetime
-    ) -> None:
+    def test_tie_detection(self, engine: ConsensusEngine, reference_time: datetime) -> None:
         """Test that ties are detected and marked as conflict."""
         votes = [
             Vote(
@@ -592,9 +574,7 @@ class TestConsensusEngineQuorum:
 
         assert quorum_type == "conflict"
 
-    def test_insufficient_votes(
-        self, engine: ConsensusEngine, reference_time: datetime
-    ) -> None:
+    def test_insufficient_votes(self, engine: ConsensusEngine, reference_time: datetime) -> None:
         """Test conflict when below minimum votes."""
         # Default min_votes is 2, provide only 1
         votes = [
@@ -614,9 +594,7 @@ class TestConsensusEngineQuorum:
 
         assert quorum_type == "conflict"  # Marked as conflict due to insufficient votes
 
-    def test_empty_scores(
-        self, engine: ConsensusEngine, reference_time: datetime
-    ) -> None:
+    def test_empty_scores(self, engine: ConsensusEngine, reference_time: datetime) -> None:
         """Test handling empty aggregated scores."""
         irdi, quorum_type, confidence = engine.determine_quorum({}, 0.0, [])
 
@@ -672,9 +650,7 @@ class TestConsensusEngineReachConsensus:
             "agent-003": 0.88,
         }
 
-        record = engine.reach_consensus(
-            "tag-123", votes, calibration_factors, reference_time
-        )
+        record = engine.reach_consensus("tag-123", votes, calibration_factors, reference_time)
 
         assert record.tag_id == "tag-123"
         assert record.agreed_irdi == "0173-1#01-ABA234#001"
@@ -717,9 +693,7 @@ class TestConsensusEngineReachConsensus:
             "agent-003": 0.88,
         }
 
-        record = engine.reach_consensus(
-            "tag-123", votes, calibration_factors, reference_time
-        )
+        record = engine.reach_consensus("tag-123", votes, calibration_factors, reference_time)
 
         # 2 votes for ABA234, 1 for XYZ789 - should be soft quorum
         assert record.agreed_irdi == "0173-1#01-ABA234#001"
@@ -753,9 +727,7 @@ class TestConsensusEngineReachConsensus:
             "agent-002": 0.95,
         }
 
-        record = engine.reach_consensus(
-            "tag-123", votes, calibration_factors, reference_time
-        )
+        record = engine.reach_consensus("tag-123", votes, calibration_factors, reference_time)
 
         # Equal votes = tie = conflict
         assert record.quorum_type == "conflict"
@@ -789,9 +761,7 @@ class TestConsensusEngineReachConsensus:
 
         calibration_factors = {"agent-001": 0.95, "agent-002": 0.90}
 
-        record = engine.reach_consensus(
-            "tag-123", votes, calibration_factors, reference_time
-        )
+        record = engine.reach_consensus("tag-123", votes, calibration_factors, reference_time)
 
         assert len(record.audit_trail) > 0
         assert "Consensus process started" in record.audit_trail[0]
@@ -863,9 +833,7 @@ class TestConsensusEngineAuditTrail:
             quorum_type="hard",
         )
 
-    def test_add_audit_entry(
-        self, engine: ConsensusEngine, sample_record: ConsensusRecord
-    ) -> None:
+    def test_add_audit_entry(self, engine: ConsensusEngine, sample_record: ConsensusRecord) -> None:
         """Test adding an audit entry."""
         updated = engine.add_audit_entry(sample_record, "Manual review completed")
 
@@ -898,9 +866,7 @@ class TestConsensusEngineEdgeCases:
         """Create a reference time for testing."""
         return datetime.now(UTC)
 
-    def test_single_vote_below_min(
-        self, engine: ConsensusEngine, reference_time: datetime
-    ) -> None:
+    def test_single_vote_below_min(self, engine: ConsensusEngine, reference_time: datetime) -> None:
         """Test consensus with single vote (below min_votes=2)."""
         votes = [
             Vote(
@@ -914,17 +880,13 @@ class TestConsensusEngineEdgeCases:
 
         calibration_factors = {"agent-001": 0.95}
 
-        record = engine.reach_consensus(
-            "tag-123", votes, calibration_factors, reference_time
-        )
+        record = engine.reach_consensus("tag-123", votes, calibration_factors, reference_time)
 
         # Should return conflict due to insufficient votes
         assert record.quorum_type == "conflict"
         assert record.agreed_irdi == "0173-1#01-ABA234#001"
 
-    def test_all_same_irdi(
-        self, engine: ConsensusEngine, reference_time: datetime
-    ) -> None:
+    def test_all_same_irdi(self, engine: ConsensusEngine, reference_time: datetime) -> None:
         """Test consensus when all votes are for the same IRDI."""
         votes = [
             Vote(
@@ -939,9 +901,7 @@ class TestConsensusEngineEdgeCases:
 
         calibration_factors = {f"agent-{i:03d}": 0.9 for i in range(5)}
 
-        record = engine.reach_consensus(
-            "tag-123", votes, calibration_factors, reference_time
-        )
+        record = engine.reach_consensus("tag-123", votes, calibration_factors, reference_time)
 
         assert record.quorum_type == "hard"
         assert record.consensus_confidence == 1.0
@@ -965,9 +925,7 @@ class TestConsensusEngineEdgeCases:
 
         calibration_factors = {f"agent-{i:03d}": 0.95 for i in range(3)}
 
-        record = engine.reach_consensus(
-            "tag-123", votes, calibration_factors, reference_time
-        )
+        record = engine.reach_consensus("tag-123", votes, calibration_factors, reference_time)
 
         # 3 votes but 5 required -> conflict
         assert record.quorum_type == "conflict"

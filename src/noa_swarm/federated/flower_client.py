@@ -162,10 +162,7 @@ class FedProxClient(fl.client.NumPyClient):
             List of NumPy arrays containing model parameters.
         """
         _ = config
-        return [
-            param.detach().cpu().numpy()
-            for param in self.model.parameters()
-        ]
+        return [param.detach().cpu().numpy() for param in self.model.parameters()]
 
     def set_parameters(self, parameters: NDArrays) -> None:
         """Update model parameters from a list of NumPy arrays.
@@ -199,9 +196,7 @@ class FedProxClient(fl.client.NumPyClient):
         """
         prox_term = torch.tensor(0.0, device=self.device)
 
-        for local_param, global_tensor in zip(
-            self.model.parameters(), global_tensors, strict=True
-        ):
+        for local_param, global_tensor in zip(self.model.parameters(), global_tensors, strict=True):
             prox_term = prox_term + torch.sum((local_param - global_tensor) ** 2)
 
         return prox_term
@@ -247,13 +242,17 @@ class FedProxClient(fl.client.NumPyClient):
             return self.get_parameters(config={}), 0, {"loss": 0.0}
 
         # Create data loaders
-        train_loader = self._create_dataloader(
-            self.train_data[0], self.train_data[1], shuffle=True
-        ) if num_train > 0 else None
+        train_loader = (
+            self._create_dataloader(self.train_data[0], self.train_data[1], shuffle=True)
+            if num_train > 0
+            else None
+        )
 
-        pseudo_loader = self._create_dataloader(
-            self.pseudo_data[0], self.pseudo_data[1], shuffle=True
-        ) if self.pseudo_data and num_pseudo > 0 else None
+        pseudo_loader = (
+            self._create_dataloader(self.pseudo_data[0], self.pseudo_data[1], shuffle=True)
+            if self.pseudo_data and num_pseudo > 0
+            else None
+        )
 
         # Set up optimizer and loss
         optimizer = torch.optim.SGD(
@@ -365,9 +364,7 @@ class FedProxClient(fl.client.NumPyClient):
             return 0.0, 0, {"accuracy": 0.0}
 
         # Create data loader
-        val_loader = self._create_dataloader(
-            self.val_data[0], self.val_data[1], shuffle=False
-        )
+        val_loader = self._create_dataloader(self.val_data[0], self.val_data[1], shuffle=False)
 
         # Validation
         self.model.eval()

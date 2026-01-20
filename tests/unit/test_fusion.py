@@ -131,11 +131,18 @@ class TestFusionModel:
         batch_size = 4
         assert outputs["property_class"].shape == (batch_size, config.num_property_classes)
         assert outputs["signal_role"].shape == (batch_size, config.num_signal_roles)
-        assert outputs["fused_embedding"].shape == (batch_size, config.charcnn_embed_dim + config.gnn_embed_dim)
+        assert outputs["fused_embedding"].shape == (
+            batch_size,
+            config.charcnn_embed_dim + config.gnn_embed_dim,
+        )
 
         # Check probabilities sum to 1
-        assert torch.allclose(outputs["property_probs"].sum(dim=-1), torch.ones(batch_size), atol=1e-5)
-        assert torch.allclose(outputs["signal_probs"].sum(dim=-1), torch.ones(batch_size), atol=1e-5)
+        assert torch.allclose(
+            outputs["property_probs"].sum(dim=-1), torch.ones(batch_size), atol=1e-5
+        )
+        assert torch.allclose(
+            outputs["signal_probs"].sum(dim=-1), torch.ones(batch_size), atol=1e-5
+        )
 
     def test_forward_without_gnn(
         self,
@@ -549,11 +556,13 @@ class TestComputeBrierScore:
 
     def test_perfect_predictions(self) -> None:
         """Test Brier score with perfect predictions."""
-        probs = torch.tensor([
-            [1.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
-            [0.0, 0.0, 1.0],
-        ])
+        probs = torch.tensor(
+            [
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0],
+            ]
+        )
         labels = torch.tensor([0, 1, 2])
 
         brier = compute_brier_score(probs, labels)
@@ -561,11 +570,13 @@ class TestComputeBrierScore:
 
     def test_worst_predictions(self) -> None:
         """Test Brier score with worst predictions."""
-        probs = torch.tensor([
-            [0.0, 1.0, 0.0],  # Predicts class 1, actual 0
-            [1.0, 0.0, 0.0],  # Predicts class 0, actual 1
-            [1.0, 0.0, 0.0],  # Predicts class 0, actual 2
-        ])
+        probs = torch.tensor(
+            [
+                [0.0, 1.0, 0.0],  # Predicts class 1, actual 0
+                [1.0, 0.0, 0.0],  # Predicts class 0, actual 1
+                [1.0, 0.0, 0.0],  # Predicts class 0, actual 2
+            ]
+        )
         labels = torch.tensor([0, 1, 2])
 
         brier = compute_brier_score(probs, labels)
@@ -720,10 +731,12 @@ class TestIntegration:
 
         # Add some reference IRDIs
         for i in range(5):
-            retriever.add_entry(IRDIEntry(
-                irdi=f"IRDI-{i}",
-                embedding=torch.randn(config.charcnn_embed_dim + config.gnn_embed_dim),
-            ))
+            retriever.add_entry(
+                IRDIEntry(
+                    irdi=f"IRDI-{i}",
+                    embedding=torch.randn(config.charcnn_embed_dim + config.gnn_embed_dim),
+                )
+            )
         retriever.build_index()
 
         # Generate query embedding from fusion model

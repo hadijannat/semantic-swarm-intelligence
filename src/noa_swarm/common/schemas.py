@@ -373,8 +373,7 @@ class ConsensusRecord(BaseModel):
                 "updated_at": utc_now(),
                 "audit_trail": [
                     *self.audit_trail,
-                    f"{utc_now().isoformat()}: Human validated"
-                    + (f" - {notes}" if notes else ""),
+                    f"{utc_now().isoformat()}: Human validated" + (f" - {notes}" if notes else ""),
                 ],
             }
         )

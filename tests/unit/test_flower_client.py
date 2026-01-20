@@ -211,16 +211,12 @@ class TestFedProxClient:
         for param in params:
             assert isinstance(param, np.ndarray)
 
-    def test_get_parameters_shape(
-        self, client: FedProxClient, simple_model: SimpleModel
-    ) -> None:
+    def test_get_parameters_shape(self, client: FedProxClient, simple_model: SimpleModel) -> None:
         """Test get_parameters returns correct shapes."""
         params = client.get_parameters(config={})
 
         # SimpleModel has fc1 (weight, bias) and fc2 (weight, bias)
-        expected_shapes = [
-            p.detach().cpu().numpy().shape for p in simple_model.parameters()
-        ]
+        expected_shapes = [p.detach().cpu().numpy().shape for p in simple_model.parameters()]
 
         assert len(params) == len(expected_shapes)
         for param, expected_shape in zip(params, expected_shapes, strict=True):
@@ -413,9 +409,7 @@ class TestFedProxProximalTerm:
 
         assert prox_loss.item() == pytest.approx(0.0, abs=1e-6)
 
-    def test_proximal_loss_positive_when_different(
-        self, client: FedProxClient
-    ) -> None:
+    def test_proximal_loss_positive_when_different(self, client: FedProxClient) -> None:
         """Test proximal loss is positive when local and global params differ."""
         global_params = client.get_parameters(config={})
 
@@ -434,9 +428,7 @@ class TestFedProxProximalTerm:
 
         assert prox_loss.item() > 0
 
-    def test_proximal_loss_scales_with_difference(
-        self, client: FedProxClient
-    ) -> None:
+    def test_proximal_loss_scales_with_difference(self, client: FedProxClient) -> None:
         """Test proximal loss scales with parameter difference."""
         global_params = client.get_parameters(config={})
 

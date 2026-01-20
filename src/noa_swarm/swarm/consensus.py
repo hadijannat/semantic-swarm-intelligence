@@ -27,7 +27,6 @@ logger = get_logger(__name__)
 
 
 @dataclass(frozen=True)
-@dataclass
 class ConsensusConfig:
     """Configuration for the consensus engine.
 
@@ -74,9 +73,7 @@ class ConsensusConfig:
             )
 
         # Validate weights sum to approximately 1.0 (with small tolerance for floating point)
-        total_weight = (
-            self.calibration_weight + self.reliability_weight + self.confidence_weight
-        )
+        total_weight = self.calibration_weight + self.reliability_weight + self.confidence_weight
         if not 0.99 <= total_weight <= 1.01:
             raise ValueError(
                 f"Weights must sum to 1.0, got {total_weight} "
@@ -106,13 +103,11 @@ class WeightedVote:
         """Validate weight values."""
         if not 0.0 <= self.calibration_factor <= 1.0:
             raise ValueError(
-                f"calibration_factor must be between 0.0 and 1.0, "
-                f"got {self.calibration_factor}"
+                f"calibration_factor must be between 0.0 and 1.0, " f"got {self.calibration_factor}"
             )
         if not 0.0 <= self.freshness_factor <= 1.0:
             raise ValueError(
-                f"freshness_factor must be between 0.0 and 1.0, "
-                f"got {self.freshness_factor}"
+                f"freshness_factor must be between 0.0 and 1.0, " f"got {self.freshness_factor}"
             )
 
 
@@ -208,9 +203,7 @@ class ConsensusEngine:
         Returns:
             WeightedVote with computed weights.
         """
-        freshness_factor = self.compute_freshness_factor(
-            vote.timestamp, reference_time
-        )
+        freshness_factor = self.compute_freshness_factor(vote.timestamp, reference_time)
 
         # Compute base weight from calibration, reliability, and confidence
         base_weight = (
@@ -257,9 +250,7 @@ class ConsensusEngine:
             # Get calibration factor for this agent (default to 0.5 if unknown)
             calibration = calibration_factors.get(vote.agent_id, 0.5)
 
-            weighted_vote = self.compute_weighted_vote(
-                vote, calibration, reference_time
-            )
+            weighted_vote = self.compute_weighted_vote(vote, calibration, reference_time)
             weighted_votes.append(weighted_vote)
 
             # Aggregate by IRDI
@@ -303,9 +294,7 @@ class ConsensusEngine:
             # Return the top candidate but mark as conflict
             if aggregated_scores:
                 top_irdi = max(aggregated_scores, key=lambda k: aggregated_scores[k])
-                confidence = (
-                    aggregated_scores[top_irdi] / total_weight if total_weight > 0 else 0
-                )
+                confidence = aggregated_scores[top_irdi] / total_weight if total_weight > 0 else 0
                 return top_irdi, "conflict", confidence
             return None, "conflict", 0.0
 
@@ -405,9 +394,7 @@ class ConsensusEngine:
         )
 
         # Log aggregation details
-        for irdi, score in sorted(
-            aggregated_scores.items(), key=lambda x: x[1], reverse=True
-        ):
+        for irdi, score in sorted(aggregated_scores.items(), key=lambda x: x[1], reverse=True):
             proportion = score / total_weight if total_weight > 0 else 0
             audit_trail.append(
                 f"{timestamp.isoformat()}: IRDI {irdi} received "
@@ -486,9 +473,7 @@ class InsufficientVotesError(ConsensusError):
     def __init__(self, vote_count: int, min_required: int) -> None:
         self.vote_count = vote_count
         self.min_required = min_required
-        super().__init__(
-            f"Insufficient votes: {vote_count} provided, {min_required} required"
-        )
+        super().__init__(f"Insufficient votes: {vote_count} provided, {min_required} required")
 
 
 class NoConsensusError(ConsensusError):
@@ -498,6 +483,5 @@ class NoConsensusError(ConsensusError):
         self.tag_id = tag_id
         self.top_candidates = top_candidates
         super().__init__(
-            f"No consensus reached for tag {tag_id}. "
-            f"Top candidates: {top_candidates}"
+            f"No consensus reached for tag {tag_id}. " f"Top candidates: {top_candidates}"
         )

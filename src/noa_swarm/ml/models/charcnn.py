@@ -60,17 +60,17 @@ PROPERTY_CLASSES = [
 
 # Signal roles based on ISA S5.1 function codes
 SIGNAL_ROLES = [
-    "indicator",      # I - Indicator
-    "controller",     # C - Controller
-    "transmitter",    # T - Transmitter
-    "element",        # E - Element/Sensor
-    "recorder",       # R - Recorder
-    "switch",         # S - Switch
-    "valve",          # V - Valve
-    "alarm",          # A - Alarm
-    "relay",          # Y - Relay/Solenoid
-    "glass",          # G - Sight glass
-    "totalizer",      # Q - Quantity/Totalizer
+    "indicator",  # I - Indicator
+    "controller",  # C - Controller
+    "transmitter",  # T - Transmitter
+    "element",  # E - Element/Sensor
+    "recorder",  # R - Recorder
+    "switch",  # S - Switch
+    "valve",  # V - Valve
+    "alarm",  # A - Alarm
+    "relay",  # Y - Relay/Solenoid
+    "glass",  # G - Sight glass
+    "totalizer",  # Q - Quantity/Totalizer
     "unknown",
 ]
 
@@ -295,15 +295,9 @@ class CharCNN(nn.Module):
         self.dropout = nn.Dropout(self.config.dropout)
 
         # Output heads
-        self.property_head = nn.Linear(
-            self.config.hidden_dim, self.config.num_property_classes
-        )
-        self.signal_head = nn.Linear(
-            self.config.hidden_dim, self.config.num_signal_roles
-        )
-        self.embedding_head = nn.Linear(
-            self.config.hidden_dim, self.config.irdi_embedding_dim
-        )
+        self.property_head = nn.Linear(self.config.hidden_dim, self.config.num_property_classes)
+        self.signal_head = nn.Linear(self.config.hidden_dim, self.config.num_signal_roles)
+        self.embedding_head = nn.Linear(self.config.hidden_dim, self.config.irdi_embedding_dim)
 
         # Initialize weights
         self._init_weights()
@@ -488,7 +482,9 @@ def get_property_class_from_category(category: str) -> int:
     }
 
     mapped = category_mapping.get(category, "unknown")
-    return PROPERTY_CLASSES.index(mapped) if mapped in PROPERTY_CLASSES else len(PROPERTY_CLASSES) - 1
+    return (
+        PROPERTY_CLASSES.index(mapped) if mapped in PROPERTY_CLASSES else len(PROPERTY_CLASSES) - 1
+    )
 
 
 def get_signal_role_from_prefix(prefix: str) -> int:

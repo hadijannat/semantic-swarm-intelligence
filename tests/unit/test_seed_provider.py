@@ -51,9 +51,7 @@ class TestSeedDictionaryLookup:
         assert "temperature" in concept.preferred_name.lower()
 
     @pytest.mark.asyncio
-    async def test_lookup_nonexistent_irdi(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    async def test_lookup_nonexistent_irdi(self, provider: SeedDictionaryProvider) -> None:
         """Test looking up a nonexistent IRDI returns None."""
         concept = await provider.lookup("0173-1#99-ZZZZZ#999")
         assert concept is None
@@ -78,9 +76,7 @@ class TestSeedDictionarySearch:
         return SeedDictionaryProvider()
 
     @pytest.mark.asyncio
-    async def test_search_finds_matching_concepts(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    async def test_search_finds_matching_concepts(self, provider: SeedDictionaryProvider) -> None:
         """Test search finds concepts matching query."""
         results = await provider.search("temperature")
         assert len(results) > 0
@@ -89,17 +85,13 @@ class TestSeedDictionarySearch:
             assert isinstance(result, SearchResult)
 
     @pytest.mark.asyncio
-    async def test_search_respects_max_results(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    async def test_search_respects_max_results(self, provider: SeedDictionaryProvider) -> None:
         """Test search respects max_results limit."""
         results = await provider.search("", max_results=5)
         assert len(results) <= 5
 
     @pytest.mark.asyncio
-    async def test_search_returns_ordered_by_score(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    async def test_search_returns_ordered_by_score(self, provider: SeedDictionaryProvider) -> None:
         """Test search results are ordered by score descending."""
         results = await provider.search("pressure")
         if len(results) > 1:
@@ -107,9 +99,7 @@ class TestSeedDictionarySearch:
             assert scores == sorted(scores, reverse=True)
 
     @pytest.mark.asyncio
-    async def test_search_case_insensitive(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    async def test_search_case_insensitive(self, provider: SeedDictionaryProvider) -> None:
         """Test search is case insensitive."""
         results_lower = await provider.search("temperature")
         results_upper = await provider.search("TEMPERATURE")
@@ -132,9 +122,7 @@ class TestSeedDictionarySearch:
         assert len(results) > 0
 
     @pytest.mark.asyncio
-    async def test_search_no_matches(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    async def test_search_no_matches(self, provider: SeedDictionaryProvider) -> None:
         """Test search with no matches returns empty list."""
         results = await provider.search("xyznonexistentconcept123")
         assert results == []
@@ -149,9 +137,7 @@ class TestSeedDictionaryHierarchy:
         return SeedDictionaryProvider()
 
     @pytest.mark.asyncio
-    async def test_get_hierarchy_existing_concept(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    async def test_get_hierarchy_existing_concept(self, provider: SeedDictionaryProvider) -> None:
         """Test getting hierarchy for existing concept."""
         node = await provider.get_hierarchy("0173-1#02-AAB663#001")
         assert node is not None
@@ -167,9 +153,7 @@ class TestSeedDictionaryHierarchy:
         assert node is None
 
     @pytest.mark.asyncio
-    async def test_get_hierarchy_includes_parent(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    async def test_get_hierarchy_includes_parent(self, provider: SeedDictionaryProvider) -> None:
         """Test hierarchy includes parent if available."""
         node = await provider.get_hierarchy("0173-1#02-AAB663#001")
         # Should have hierarchy info (parent may be None for root concepts)
@@ -185,9 +169,7 @@ class TestSeedDictionaryAvailability:
         return SeedDictionaryProvider()
 
     @pytest.mark.asyncio
-    async def test_is_always_available(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    async def test_is_always_available(self, provider: SeedDictionaryProvider) -> None:
         """Test seed provider is always available (offline)."""
         available = await provider.is_available()
         assert available is True
@@ -201,9 +183,7 @@ class TestSeedDictionaryContent:
         """Create a provider for testing."""
         return SeedDictionaryProvider()
 
-    def test_has_common_process_concepts(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    def test_has_common_process_concepts(self, provider: SeedDictionaryProvider) -> None:
         """Test seed set includes common process automation concepts."""
         # These are essential PA-DIM/IEC 61987 concepts
         expected_concepts = [
@@ -219,18 +199,14 @@ class TestSeedDictionaryContent:
             found = any(concept in name for name in all_names)
             assert found, f"Expected concept '{concept}' not found in seed set"
 
-    def test_concepts_have_required_fields(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    def test_concepts_have_required_fields(self, provider: SeedDictionaryProvider) -> None:
         """Test all concepts have required fields."""
         for irdi, concept in provider._concepts.items():
             assert concept.irdi == irdi
             assert concept.preferred_name
             assert concept.source == "seed"
 
-    def test_has_minimum_concept_count(
-        self, provider: SeedDictionaryProvider
-    ) -> None:
+    def test_has_minimum_concept_count(self, provider: SeedDictionaryProvider) -> None:
         """Test seed set has minimum number of concepts."""
         # Plan specifies ~200 common process automation concepts
         # We'll be flexible and require at least 50 for initial implementation

@@ -570,9 +570,7 @@ class TEPDataset:
 
         return DatasetSplit(train=train, val=val, test=test)
 
-    def load_data(
-        self, filename: str = "TEP_FaultFree_Training.csv"
-    ) -> NDArray[np.floating[Any]]:
+    def load_data(self, filename: str = "TEP_FaultFree_Training.csv") -> NDArray[np.floating[Any]]:
         """Load TEP data from a CSV file.
 
         Args:
@@ -625,7 +623,7 @@ class TEPDataset:
             raise FileNotFoundError(f"TEP MAT file not found: {filepath}")
 
         try:
-            from scipy.io import loadmat  # type: ignore[import-untyped]
+            from scipy.io import loadmat
 
             mat_data = loadmat(filepath)
             # Common key names in TEP MAT files

@@ -158,33 +158,25 @@ class FusionModel(nn.Module):
     @property
     def alpha(self) -> torch.Tensor:
         """Get the normalized CharCNN weight for property class."""
-        weights = F.softmax(
-            torch.stack([self._alpha_logit, self._beta_logit]), dim=0
-        )
+        weights = F.softmax(torch.stack([self._alpha_logit, self._beta_logit]), dim=0)
         return weights[0]
 
     @property
     def beta(self) -> torch.Tensor:
         """Get the normalized GNN weight for property class."""
-        weights = F.softmax(
-            torch.stack([self._alpha_logit, self._beta_logit]), dim=0
-        )
+        weights = F.softmax(torch.stack([self._alpha_logit, self._beta_logit]), dim=0)
         return weights[1]
 
     @property
     def alpha_signal(self) -> torch.Tensor:
         """Get the normalized CharCNN weight for signal role."""
-        weights = F.softmax(
-            torch.stack([self._alpha_signal_logit, self._beta_signal_logit]), dim=0
-        )
+        weights = F.softmax(torch.stack([self._alpha_signal_logit, self._beta_signal_logit]), dim=0)
         return weights[0]
 
     @property
     def beta_signal(self) -> torch.Tensor:
         """Get the normalized GNN weight for signal role."""
-        weights = F.softmax(
-            torch.stack([self._alpha_signal_logit, self._beta_signal_logit]), dim=0
-        )
+        weights = F.softmax(torch.stack([self._alpha_signal_logit, self._beta_signal_logit]), dim=0)
         return weights[1]
 
     @property
@@ -248,17 +240,13 @@ class FusionModel(nn.Module):
 
             # Property class fusion
             if gnn_property is not None:
-                fused_property = (
-                    self.alpha * charcnn_property + self.beta * gnn_property
-                )
+                fused_property = self.alpha * charcnn_property + self.beta * gnn_property
             else:
                 fused_property = charcnn_property
 
             # Signal role fusion
             if gnn_signal is not None:
-                fused_signal = (
-                    self.alpha_signal * charcnn_signal + self.beta_signal * gnn_signal
-                )
+                fused_signal = self.alpha_signal * charcnn_signal + self.beta_signal * gnn_signal
             else:
                 fused_signal = charcnn_signal
 
@@ -349,13 +337,9 @@ class FusionModel(nn.Module):
         """
         with torch.no_grad():
             if temperature_property is not None:
-                self._log_temperature_property.fill_(
-                    torch.log(torch.tensor(temperature_property))
-                )
+                self._log_temperature_property.fill_(torch.log(torch.tensor(temperature_property)))
             if temperature_signal is not None:
-                self._log_temperature_signal.fill_(
-                    torch.log(torch.tensor(temperature_signal))
-                )
+                self._log_temperature_signal.fill_(torch.log(torch.tensor(temperature_signal)))
 
     def freeze_fusion_weights(self) -> None:
         """Freeze fusion weights (useful when only calibrating temperature)."""
@@ -536,9 +520,7 @@ class IRDIRetriever:
             # Cosine similarity = dot product of normalized vectors
             similarities = torch.mv(self._embeddings, query)
             # Higher is better for cosine similarity
-            top_k_values, top_k_indices = torch.topk(
-                similarities, min(top_k, len(self.entries))
-            )
+            top_k_values, top_k_indices = torch.topk(similarities, min(top_k, len(self.entries)))
         else:
             # Euclidean distance
             distances = torch.norm(self._embeddings - query.unsqueeze(0), p=2, dim=-1)

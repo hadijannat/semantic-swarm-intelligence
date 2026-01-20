@@ -101,7 +101,8 @@ class TestOPCUASimulator:
                 # Filter to only ISA-style tags (PREFIX-NUMBER pattern)
                 isa_prefixes = {"FIC", "TIC", "PIC", "LIC", "AIC", "XV", "FCV", "PSH", "TSL", "SI"}
                 isa_tags = [
-                    t for t in tags
+                    t
+                    for t in tags
                     if "-" in t.browse_name and t.browse_name.split("-")[0] in isa_prefixes
                 ]
 
@@ -133,9 +134,7 @@ class TestOPCUASimulator:
 class TestOPCUABrowser:
     """Tests for the OPC UA browser."""
 
-    async def test_browser_connects_and_disconnects(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_browser_connects_and_disconnects(self, simulator: OPCUASimulator) -> None:
         """Test that browser can connect and disconnect."""
         browser = OPCUABrowser(simulator.endpoint_url)
         assert not browser.is_connected
@@ -147,27 +146,21 @@ class TestOPCUABrowser:
         await browser.disconnect()
         assert not browser.is_connected
 
-    async def test_browser_context_manager(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_browser_context_manager(self, simulator: OPCUASimulator) -> None:
         """Test browser as async context manager."""
         async with OPCUABrowser(simulator.endpoint_url) as browser:
             assert browser.is_connected
 
         assert not browser.is_connected
 
-    async def test_create_opcua_browser_helper(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_create_opcua_browser_helper(self, simulator: OPCUASimulator) -> None:
         """Test the create_opcua_browser helper function."""
         async with create_opcua_browser(simulator.endpoint_url) as browser:
             assert browser.is_connected
             tags = await browser.browse_all_tags()
             assert len(tags) > 0
 
-    async def test_browse_all_tags_returns_tag_records(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_browse_all_tags_returns_tag_records(self, simulator: OPCUASimulator) -> None:
         """Test that browse_all_tags returns TagRecord instances."""
         async with OPCUABrowser(simulator.endpoint_url) as browser:
             tags = await browser.browse_all_tags()
@@ -179,9 +172,7 @@ class TestOPCUABrowser:
                 assert tag.browse_name
                 assert tag.source_server == simulator.endpoint_url
 
-    async def test_tag_records_have_metadata(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_tag_records_have_metadata(self, simulator: OPCUASimulator) -> None:
         """Test that tag records include metadata."""
         async with OPCUABrowser(simulator.endpoint_url) as browser:
             tags = await browser.browse_all_tags()
@@ -194,9 +185,7 @@ class TestOPCUABrowser:
             tags_with_parent = [t for t in tags if t.parent_path]
             assert len(tags_with_parent) > 0
 
-    async def test_tag_records_have_hierarchy(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_tag_records_have_hierarchy(self, simulator: OPCUASimulator) -> None:
         """Test that tags have proper hierarchical paths."""
         async with OPCUABrowser(simulator.endpoint_url) as browser:
             tags = await browser.browse_all_tags()
@@ -204,7 +193,8 @@ class TestOPCUABrowser:
             # Filter to ISA-style process tags
             isa_prefixes = {"FIC", "TIC", "PIC", "LIC", "AIC", "XV", "FCV", "PSH", "TSL", "SI"}
             process_tags = [
-                t for t in tags
+                t
+                for t in tags
                 if "-" in t.browse_name and t.browse_name.split("-")[0] in isa_prefixes
             ]
 
@@ -216,9 +206,7 @@ class TestOPCUABrowser:
                 # First element should be the plant name
                 assert "TestPlant" in tag.parent_path[0] or "Plant" in tag.parent_path[0]
 
-    async def test_read_value(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_read_value(self, simulator: OPCUASimulator) -> None:
         """Test reading a single value."""
         async with OPCUABrowser(simulator.endpoint_url) as browser:
             tags = await browser.browse_all_tags()
@@ -227,7 +215,8 @@ class TestOPCUABrowser:
             # Filter to ISA-style process tags (these have actual values)
             isa_prefixes = {"FIC", "TIC", "PIC", "LIC", "AIC", "XV", "FCV", "PSH", "TSL", "SI"}
             process_tags = [
-                t for t in tags
+                t
+                for t in tags
                 if "-" in t.browse_name and t.browse_name.split("-")[0] in isa_prefixes
             ]
             assert len(process_tags) > 0, "No process tags found"
@@ -240,9 +229,7 @@ class TestOPCUABrowser:
             assert value is not None
             assert isinstance(value, (int, float, bool))
 
-    async def test_read_multiple_values(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_read_multiple_values(self, simulator: OPCUASimulator) -> None:
         """Test reading multiple values concurrently."""
         async with OPCUABrowser(simulator.endpoint_url) as browser:
             tags = await browser.browse_all_tags()
@@ -250,7 +237,8 @@ class TestOPCUABrowser:
             # Filter to ISA-style process tags (these have actual values)
             isa_prefixes = {"FIC", "TIC", "PIC", "LIC", "AIC", "XV", "FCV", "PSH", "TSL", "SI"}
             process_tags = [
-                t for t in tags
+                t
+                for t in tags
                 if "-" in t.browse_name and t.browse_name.split("-")[0] in isa_prefixes
             ]
             assert len(process_tags) >= 3, "Need at least 3 process tags"
@@ -263,9 +251,7 @@ class TestOPCUABrowser:
             for value in values:
                 assert value is not None
 
-    async def test_get_node_metadata(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_get_node_metadata(self, simulator: OPCUASimulator) -> None:
         """Test getting metadata for a specific node."""
         async with OPCUABrowser(simulator.endpoint_url) as browser:
             tags = await browser.browse_all_tags()
@@ -282,9 +268,7 @@ class TestOPCUABrowser:
 class TestReadOnlyEnforcement:
     """Tests for read-only enforcement."""
 
-    async def test_write_value_raises_error(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_write_value_raises_error(self, simulator: OPCUASimulator) -> None:
         """Test that write_value raises OPCUAWriteAttemptError."""
         async with OPCUABrowser(simulator.endpoint_url) as browser:
             with pytest.raises(OPCUAWriteAttemptError) as exc_info:
@@ -292,9 +276,7 @@ class TestReadOnlyEnforcement:
 
             assert "not allowed" in str(exc_info.value).lower()
 
-    async def test_write_attribute_raises_error(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_write_attribute_raises_error(self, simulator: OPCUASimulator) -> None:
         """Test that write_attribute raises OPCUAWriteAttemptError."""
         async with OPCUABrowser(simulator.endpoint_url) as browser:
             with pytest.raises(OPCUAWriteAttemptError) as exc_info:
@@ -302,9 +284,7 @@ class TestReadOnlyEnforcement:
 
             assert "not allowed" in str(exc_info.value).lower()
 
-    async def test_call_method_raises_error(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_call_method_raises_error(self, simulator: OPCUASimulator) -> None:
         """Test that call_method raises OPCUAWriteAttemptError."""
         async with OPCUABrowser(simulator.endpoint_url) as browser:
             with pytest.raises(OPCUAWriteAttemptError) as exc_info:
@@ -340,9 +320,7 @@ class TestConnectionErrors:
 class TestConcurrencyControl:
     """Tests for concurrency control and backpressure."""
 
-    async def test_semaphore_is_configured(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_semaphore_is_configured(self, simulator: OPCUASimulator) -> None:
         """Test that semaphore is correctly configured from settings."""
         from noa_swarm.common.config import OPCUASettings
 
@@ -355,9 +333,7 @@ class TestConcurrencyControl:
         # Note: Semaphore internal value check
         assert browser._semaphore._value == 7
 
-    async def test_multiple_concurrent_reads(
-        self, simulator: OPCUASimulator
-    ) -> None:
+    async def test_multiple_concurrent_reads(self, simulator: OPCUASimulator) -> None:
         """Test multiple concurrent read operations."""
         async with OPCUABrowser(simulator.endpoint_url) as browser:
             tags = await browser.browse_all_tags()
@@ -365,7 +341,8 @@ class TestConcurrencyControl:
             # Filter to ISA-style process tags (these have actual values)
             isa_prefixes = {"FIC", "TIC", "PIC", "LIC", "AIC", "XV", "FCV", "PSH", "TSL", "SI"}
             process_tags = [
-                t for t in tags
+                t
+                for t in tags
                 if "-" in t.browse_name and t.browse_name.split("-")[0] in isa_prefixes
             ]
 
@@ -383,9 +360,7 @@ class TestConcurrencyControl:
 class TestDictionaryEntryExtraction:
     """Tests for HasDictionaryEntry reference extraction."""
 
-    async def test_irdi_extraction_from_dictionary_entries(
-        self, unique_port: int
-    ) -> None:
+    async def test_irdi_extraction_from_dictionary_entries(self, unique_port: int) -> None:
         """Test that IRDIs can be extracted from HasDictionaryEntry references."""
         # Create simulator with dictionary entries enabled
         structure = PlantStructure(
@@ -410,7 +385,8 @@ class TestDictionaryEntryExtraction:
                 # Filter to ISA-style process tags
                 isa_prefixes = {"FIC", "TIC", "PIC", "LIC", "AIC", "XV", "FCV", "PSH", "TSL", "SI"}
                 process_tags = [
-                    t for t in tags
+                    t
+                    for t in tags
                     if "-" in t.browse_name and t.browse_name.split("-")[0] in isa_prefixes
                 ]
 

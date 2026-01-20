@@ -70,9 +70,7 @@ def _import_from_csv_sync(path: Path) -> list[TagRecord]:
         reader = csv.DictReader(handle)
         records: list[TagRecord] = []
         for row in reader:
-            parent_path = (
-                row.get("parent_path", "").split("/") if row.get("parent_path") else []
-            )
+            parent_path = row.get("parent_path", "").split("/") if row.get("parent_path") else []
             records.append(
                 TagRecord(
                     node_id=row.get("node_id", ""),

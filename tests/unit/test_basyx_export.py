@@ -71,10 +71,12 @@ class TestCreateTagMappingAAS:
         submodel = TagMappingSubmodel(
             submodel_id="urn:test:submodel:1",
         )
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TIC-101.PV",
-            browse_path="/Objects/TIC-101/PV",
-        ))
+        submodel.add_tag(
+            DiscoveredTag(
+                tag_name="TIC-101.PV",
+                browse_path="/Objects/TIC-101/PV",
+            )
+        )
 
         aas, sm = create_tag_mapping_aas(
             submodel=submodel,
@@ -84,6 +86,7 @@ class TestCreateTagMappingAAS:
 
         # Should return AAS and Submodel objects
         from basyx.aas.model import AssetAdministrationShell, Submodel
+
         assert isinstance(aas, AssetAdministrationShell)
         assert isinstance(sm, Submodel)
         assert str(aas.id) == "urn:test:aas:plant001"
@@ -111,18 +114,22 @@ class TestAASExporter:
         submodel = TagMappingSubmodel(
             submodel_id="urn:test:submodel:export",
         )
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TIC-101.PV",
-            browse_path="/Objects/TIC-101/PV",
-            irdi="0173-1#02-AAB663#001",
-            status=MappingStatus.MAPPED,
-            consensus=ConsensusInfo(confidence=0.95, participating_agents=3),
-        ))
-        submodel.add_tag(DiscoveredTag(
-            tag_name="FIC-200.SP",
-            browse_path="/Objects/FIC-200/SP",
-            status=MappingStatus.PENDING,
-        ))
+        submodel.add_tag(
+            DiscoveredTag(
+                tag_name="TIC-101.PV",
+                browse_path="/Objects/TIC-101/PV",
+                irdi="0173-1#02-AAB663#001",
+                status=MappingStatus.MAPPED,
+                consensus=ConsensusInfo(confidence=0.95, participating_agents=3),
+            )
+        )
+        submodel.add_tag(
+            DiscoveredTag(
+                tag_name="FIC-200.SP",
+                browse_path="/Objects/FIC-200/SP",
+                status=MappingStatus.PENDING,
+            )
+        )
         return submodel
 
     @pytest.fixture
@@ -278,16 +285,16 @@ class TestAASExporterWithMultipleTags:
                 MappingStatus.MAPPED,
                 MappingStatus.VERIFIED,
             ][i % 3]
-            submodel.add_tag(DiscoveredTag(
-                tag_name=f"TAG-{i:03d}.PV",
-                browse_path=f"/Objects/TAG-{i:03d}/PV",
-                status=status,
-            ))
+            submodel.add_tag(
+                DiscoveredTag(
+                    tag_name=f"TAG-{i:03d}.PV",
+                    browse_path=f"/Objects/TAG-{i:03d}/PV",
+                    status=status,
+                )
+            )
         return submodel
 
-    def test_export_large_submodel_json(
-        self, large_submodel: TagMappingSubmodel
-    ) -> None:
+    def test_export_large_submodel_json(self, large_submodel: TagMappingSubmodel) -> None:
         """Test exporting large submodel to JSON."""
         aas, sm = create_tag_mapping_aas(
             submodel=large_submodel,
@@ -301,9 +308,7 @@ class TestAASExporterWithMultipleTags:
         data = json.loads(json_str)
         assert data is not None
 
-    def test_export_large_submodel_aasx(
-        self, large_submodel: TagMappingSubmodel
-    ) -> None:
+    def test_export_large_submodel_aasx(self, large_submodel: TagMappingSubmodel) -> None:
         """Test exporting large submodel to AASX."""
         aas, sm = create_tag_mapping_aas(
             submodel=large_submodel,
@@ -330,12 +335,14 @@ class TestExportRoundTrip:
     def test_json_roundtrip_preserves_structure(self) -> None:
         """Test that JSON export preserves AAS structure."""
         submodel = TagMappingSubmodel(submodel_id="urn:roundtrip:sm:1")
-        submodel.add_tag(DiscoveredTag(
-            tag_name="TEST-001",
-            browse_path="/Test/001",
-            irdi="0173-1#02-AAB663#001",
-            status=MappingStatus.MAPPED,
-        ))
+        submodel.add_tag(
+            DiscoveredTag(
+                tag_name="TEST-001",
+                browse_path="/Test/001",
+                irdi="0173-1#02-AAB663#001",
+                status=MappingStatus.MAPPED,
+            )
+        )
 
         aas, sm = create_tag_mapping_aas(
             submodel=submodel,

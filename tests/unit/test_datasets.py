@@ -199,9 +199,7 @@ class TestSyntheticTagGenerator:
 
         # When all three ratios are explicitly provided and don't sum to 1.0
         with pytest.raises(ValueError, match="sum to 1.0"):
-            generator.generate_split(
-                total=100, train_ratio=0.8, val_ratio=0.3, test_ratio=0.1
-            )
+            generator.generate_split(total=100, train_ratio=0.8, val_ratio=0.3, test_ratio=0.1)
 
     def test_generate_balanced(self) -> None:
         """Test balanced IRDI generation."""
@@ -233,14 +231,43 @@ class TestSyntheticTagGenerator:
 
         # Check that tags have expected prefixes
         valid_prefixes = {
-            "FI", "FIC", "FT", "FCV", "FQ",  # Flow
-            "TI", "TIC", "TT", "TSH", "TSL", "TSHH", "TSLL",  # Temperature
-            "PI", "PIC", "PT", "PDI", "PDIC", "PSH", "PSL",  # Pressure
-            "LI", "LIC", "LT", "LCV", "LSH", "LSL",  # Level
-            "AI", "AIC", "AT",  # Analyzer
-            "SI", "SIC", "ST",  # Speed
-            "WI", "WIC", "WT",  # Weight
-            "XV", "HV", "CV",  # Generic valves
+            "FI",
+            "FIC",
+            "FT",
+            "FCV",
+            "FQ",  # Flow
+            "TI",
+            "TIC",
+            "TT",
+            "TSH",
+            "TSL",
+            "TSHH",
+            "TSLL",  # Temperature
+            "PI",
+            "PIC",
+            "PT",
+            "PDI",
+            "PDIC",
+            "PSH",
+            "PSL",  # Pressure
+            "LI",
+            "LIC",
+            "LT",
+            "LCV",
+            "LSH",
+            "LSL",  # Level
+            "AI",
+            "AIC",
+            "AT",  # Analyzer
+            "SI",
+            "SIC",
+            "ST",  # Speed
+            "WI",
+            "WIC",
+            "WT",  # Weight
+            "XV",
+            "HV",
+            "CV",  # Generic valves
         }
 
         for sample in samples:

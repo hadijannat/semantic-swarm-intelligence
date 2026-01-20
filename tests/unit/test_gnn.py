@@ -120,9 +120,7 @@ class TestTagGraphGNN:
         """Test forward pass with batch tensor for multiple graphs."""
         # Two graphs: first has 5 nodes, second has 5 nodes
         x = torch.randn(10, 64)
-        edge_index = torch.tensor(
-            [[0, 1, 2, 5, 6, 7], [1, 2, 3, 6, 7, 8]], dtype=torch.long
-        )
+        edge_index = torch.tensor([[0, 1, 2, 5, 6, 7], [1, 2, 3, 6, 7, 8]], dtype=torch.long)
         batch = torch.tensor([0, 0, 0, 0, 0, 1, 1, 1, 1, 1], dtype=torch.long)
 
         node_emb, graph_emb = model(x, edge_index, batch=batch)
@@ -151,9 +149,7 @@ class TestTagGraphGNN:
 
         assert graph_emb.shape == (1, 32)
 
-    def test_normalization(
-        self, sample_graph: tuple[torch.Tensor, torch.Tensor]
-    ) -> None:
+    def test_normalization(self, sample_graph: tuple[torch.Tensor, torch.Tensor]) -> None:
         """Test that embeddings are L2 normalized when config.normalize=True."""
         config = TagGraphGNNConfig(
             input_dim=64,
@@ -175,9 +171,7 @@ class TestTagGraphGNN:
         graph_norm = torch.norm(graph_emb, p=2, dim=-1)
         assert torch.allclose(graph_norm, torch.ones_like(graph_norm), atol=1e-5)
 
-    def test_no_normalization(
-        self, sample_graph: tuple[torch.Tensor, torch.Tensor]
-    ) -> None:
+    def test_no_normalization(self, sample_graph: tuple[torch.Tensor, torch.Tensor]) -> None:
         """Test that embeddings are not normalized when config.normalize=False."""
         config = TagGraphGNNConfig(
             input_dim=64,
@@ -213,9 +207,7 @@ class TestTagGraphGNN:
             if hasattr(conv, "lin_l") and conv.lin_l.weight.grad is not None:
                 assert conv.lin_l.weight.grad is not None
 
-    def test_different_aggregators(
-        self, sample_graph: tuple[torch.Tensor, torch.Tensor]
-    ) -> None:
+    def test_different_aggregators(self, sample_graph: tuple[torch.Tensor, torch.Tensor]) -> None:
         """Test different aggregation methods."""
         x, edge_index = sample_graph
 
@@ -232,9 +224,7 @@ class TestTagGraphGNN:
             assert node_emb.shape == (10, 32)
             assert graph_emb is not None
 
-    def test_multi_layer_config(
-        self, sample_graph: tuple[torch.Tensor, torch.Tensor]
-    ) -> None:
+    def test_multi_layer_config(self, sample_graph: tuple[torch.Tensor, torch.Tensor]) -> None:
         """Test GNN with more than 2 layers."""
         config = TagGraphGNNConfig(
             input_dim=64,
@@ -250,9 +240,7 @@ class TestTagGraphGNN:
         assert node_emb.shape == (10, 16)
         assert len(model.convs) == 4
 
-    def test_single_layer_config(
-        self, sample_graph: tuple[torch.Tensor, torch.Tensor]
-    ) -> None:
+    def test_single_layer_config(self, sample_graph: tuple[torch.Tensor, torch.Tensor]) -> None:
         """Test GNN with single layer."""
         config = TagGraphGNNConfig(
             input_dim=64,
@@ -531,9 +519,7 @@ class TestTagGraphDataset:
         assert len(dataset) == 1  # Single graph
         assert dataset.num_nodes == 3
 
-    def test_dataset_get(
-        self, sample_tags: list[TagRecord], sample_features: torch.Tensor
-    ) -> None:
+    def test_dataset_get(self, sample_tags: list[TagRecord], sample_features: torch.Tensor) -> None:
         """Test getting a graph from the dataset."""
         dataset = TagGraphDataset(
             tag_records=sample_tags,
@@ -626,9 +612,7 @@ class TestTagGraphDataset:
 
         assert tag == sample_tags[0]
 
-    def test_numpy_features(
-        self, sample_tags: list[TagRecord]
-    ) -> None:
+    def test_numpy_features(self, sample_tags: list[TagRecord]) -> None:
         """Test dataset with numpy array features."""
         features = np.random.randn(3, 64).astype(np.float32)
         labels = np.array([0, 1, 2])
@@ -763,9 +747,7 @@ class TestCreateNodeFeaturesFromEmbeddings:
         embeddings = torch.randn(10, 64)
         stats = torch.randn(10, 5)
 
-        features = create_node_features_from_embeddings(
-            embeddings, statistical_features=stats
-        )
+        features = create_node_features_from_embeddings(embeddings, statistical_features=stats)
 
         assert features.shape == (10, 69)
 

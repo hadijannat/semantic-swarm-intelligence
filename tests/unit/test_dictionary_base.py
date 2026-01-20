@@ -154,6 +154,7 @@ class TestDictionaryProvider:
 
     def test_concrete_implementation(self) -> None:
         """Test that a concrete implementation can be created."""
+
         class MockProvider(DictionaryProvider):
             """Mock implementation for testing."""
 

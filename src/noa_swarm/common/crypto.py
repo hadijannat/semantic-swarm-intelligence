@@ -75,8 +75,7 @@ def load_certificate_info(cert_path: Path) -> CertificateInfo:
     """
     _ = cert_path
     raise NotImplementedError(
-        "Certificate loading not yet implemented. "
-        "This is a stub for future mTLS support."
+        "Certificate loading not yet implemented. " "This is a stub for future mTLS support."
     )
 
 
@@ -109,8 +108,7 @@ def create_mtls_context(
     _ = ca_path
     _ = verify_peer
     raise NotImplementedError(
-        "mTLS context creation not yet implemented. "
-        "This is a stub for future mTLS support."
+        "mTLS context creation not yet implemented. " "This is a stub for future mTLS support."
     )
 
 

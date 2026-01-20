@@ -98,11 +98,16 @@ make docker-down
 ## Local Development
 
 ```bash
-# Install dependencies
+# Install dependencies (includes ML stack)
 make install
 
 # Run API server
 poetry run uvicorn noa_swarm.api.main:app --reload
+```
+
+Optional (API-only, no ML stack):
+```bash
+poetry install --without ml
 ```
 
 Start a semantic agent:
@@ -260,3 +265,14 @@ Please review [SECURITY.md](SECURITY.md) for coordinated disclosure guidance.
 ## Citation
 
 If you use this work in research, please cite the release tagged in GitHub Releases.
+
+---
+
+## Docker ML build toggle (agents)
+
+By default, the agent image is built **without** the ML stack to keep the image small for CI and fast iteration.
+
+To build an agent image with ML enabled:
+```bash
+docker build -f docker/Dockerfile.agent --build-arg INSTALL_ML=true -t noa-swarm-agent:ml .
+```

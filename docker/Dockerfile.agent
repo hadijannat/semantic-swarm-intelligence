@@ -6,7 +6,7 @@
 # ============================================================================
 # Builder Stage - Install dependencies
 # ============================================================================
-FROM python:3.12-slim as builder
+FROM python:3.12-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -28,13 +28,19 @@ WORKDIR /app
 # Copy dependency files
 COPY pyproject.toml poetry.lock ./
 
+ARG INSTALL_ML=false
+
 # Install dependencies (no dev dependencies)
-RUN poetry install --no-root --only main --no-directory
+RUN if [ "$INSTALL_ML" = "true" ]; then \
+        poetry install --no-root --only main --with ml --no-directory; \
+    else \
+        poetry install --no-root --only main --without ml --no-directory; \
+    fi
 
 # ============================================================================
 # Runtime Stage - Final image
 # ============================================================================
-FROM python:3.12-slim as runtime
+FROM python:3.12-slim AS runtime
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -57,7 +63,7 @@ COPY --chown=agent:agent src/ ./src/
 COPY --chown=agent:agent configs/ ./configs/
 
 # Set Python path
-ENV PYTHONPATH="/app/src:$PYTHONPATH"
+ENV PYTHONPATH="/app/src"
 ENV PYTHONUNBUFFERED=1
 
 # Health check

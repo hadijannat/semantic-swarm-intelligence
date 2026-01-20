@@ -3,7 +3,7 @@
 
 # Install dependencies
 install:
-	poetry install
+	poetry install --with ml
 
 # Run linter
 lint:

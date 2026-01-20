@@ -19,9 +19,6 @@ asyncua = "^1.0.0"
 paho-mqtt = "^2.0.0"
 # Swarm
 swim-protocol = "^0.6.0"
-# ML
-torch = "^2.2.0"
-torch-geometric = "^2.4.0"
 # Federated
 flwr = "^1.7.0"
 # AAS
@@ -40,6 +37,11 @@ typer = "^0.21.1"
 prometheus-client = "^0.24.1"
 sqlalchemy = "^2.0.45"
 asyncpg = "^0.31.0"
+
+[tool.poetry.group.ml.dependencies]
+torch = "^2.2.0"
+torch-geometric = "^2.4.0"
+scipy = "^1.12.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

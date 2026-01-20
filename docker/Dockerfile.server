@@ -6,7 +6,7 @@
 # ============================================================================
 # Builder Stage - Install dependencies
 # ============================================================================
-FROM python:3.12-slim as builder
+FROM python:3.12-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -29,12 +29,12 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 
 # Install dependencies (no dev dependencies)
-RUN poetry install --no-root --only main --no-directory
+RUN poetry install --no-root --only main --without ml --no-directory
 
 # ============================================================================
 # Runtime Stage - Final image
 # ============================================================================
-FROM python:3.12-slim as runtime
+FROM python:3.12-slim AS runtime
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -57,7 +57,7 @@ COPY --chown=server:server src/ ./src/
 COPY --chown=server:server configs/ ./configs/
 
 # Set Python path
-ENV PYTHONPATH="/app/src:$PYTHONPATH"
+ENV PYTHONPATH="/app/src"
 ENV PYTHONUNBUFFERED=1
 
 # Expose ports
